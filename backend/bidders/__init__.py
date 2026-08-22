@@ -1,0 +1,1 @@
+# Veridex — Bidder modules

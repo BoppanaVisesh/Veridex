@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veridex · NBA Platform v0.9.4</title>
+  <meta name="description" content="Veridex Decision-Intelligence Platform — evidence-first B2B staffing NBA engine with human-in-the-loop checkpoints.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<!-- ═══════════ TOPBAR ═══════════ -->
+<header class="topbar">
+  <div class="tb-brand">
+    <div class="tb-mark">V</div>
+    <div>
+      <div class="tb-name">Veridex</div>
+      <div class="tb-sub" id="platform-ver">v0.9.4 · NBA Platform</div>
+    </div>
+  </div>
+
+  <div class="tb-crumb">
+    <span>⌘ veridex</span>
+    <span class="c-sep">/</span>
+    <span class="c-active" id="crumb-txt">command-center</span>
+  </div>
+
+  <div style="flex:1"></div>
+
+  <button class="tb-icon-btn" onclick="App.nav('command')" title="Notifications">
+    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+    <div class="tb-notif-dot" id="bell-dot" style="display:none"></div>
+  </button>
+
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="tb-avatar" id="tb-avatar">XL</div>
+    <div>
+      <div class="tb-user-name" id="tb-uname">XLVentures</div>
+      <div class="tb-user-role" id="tb-urole">Account Manager</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-body">
+    <div class="sidebar-lbl">Workspace</div>
+
+    <button class="nav-item active" id="nav-command" onclick="App.nav('command')">
+      <span class="nav-num">01</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+      Command Center
+      <span class="nav-badge" id="nav-badge" style="display:none">0</span>
+    </button>
+
+    <button class="nav-item" id="nav-scenarios" onclick="App.nav('scenarios')">
+      <span class="nav-num">02</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Run Scenario
+    </button>
+
+    <button class="nav-item" id="nav-missioncontrol" onclick="App.nav('missioncontrol')">
+      <span class="nav-num">03</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+      Mission Control
+    </button>
+
+    <button class="nav-item" id="nav-investigation" onclick="App.nav('investigation')">
+      <span class="nav-num">04</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      Investigation
+    </button>
+
+    <button class="nav-item" id="nav-humanreview" onclick="App.nav('humanreview')">
+      <span class="nav-num">05</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+      Human Review
+    </button>
+
+    <button class="nav-item" id="nav-metrics" onclick="App.nav('metrics')">
+      <span class="nav-num">06</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Platform Metrics
+    </button>
+
+    <button class="nav-item" id="nav-catalog" onclick="App.nav('catalog')">
+      <span class="nav-num">07</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      Catalog Intelligence
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sys-row">
+      <div class="s-dot dot-g" id="sys-dot"></div>
+      <span id="sys-txt">All systems nominal</span>
+    </div>
+    <div class="sys-row" style="font-size:.66rem">
+      <span id="sys-sub">8/8 agents</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main">
+
+  <!-- PAGE 01: Command Center -->
+  <section class="page active" id="page-command">
+    <div class="page-hdr">
+      <div>
+        <div class="page-meta" id="cc-datetime">OPERATIONS · —</div>
+        <h1 class="page-title">Veridex Operations Center</h1>
+        <p class="page-desc">Decision-intelligence platform for B2B staffing. The platform never silently guesses — every recommendation arrives with its evidence, dissent, and a human checkpoint.</p>
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="App.nav('scenarios')">Run new scenario ↗</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-num"><span>01 · Critical Decisions Waiting</span></div>
+        <div class="kpi-val" id="kpi-critical">--</div>
+        <div class="kpi-sub">Awaiting human review</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num"><span>02 · Agents Online</span></div>
+        <div class="kpi-val" id="kpi-agents">--</div>
+        <div class="kpi-sub" id="kpi-agents-sub"><span class="s-dot dot-g"></span> All systems nominal</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num"><span>03 · Decisions Processed Today</span></div>
+        <div class="kpi-val" id="kpi-today">--</div>
+        <div class="kpi-sub">Total run this session</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num"><span>04 · HITL Acceptance Rate</span></div>
+        <div class="kpi-val" id="kpi-hitl">--</div>
+        <div class="kpi-sub"><span class="s-dot dot-g"></span> Calibrated</div>
+      </div>
+    </div>
+
+    <div class="g2" style="align-items:start">
+      <!-- Decision Queue -->
+      <div class="card" style="padding:0">
+        <div class="card-hd" style="padding: 16px 20px; border-bottom: 1px solid var(--border)">
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text)">Critical Decision Queue
+            <small style="text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text3); margin-top: 4px; font-weight: 600">Sorted by SLA-Risk · <span id="q-count">0</span> active</small>
+          </h3>
+          <div>
+            <a href="#" onclick="App.nav('investigation'); return false;" style="font-size: 0.68rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text3); text-decoration: none; letter-spacing: 0.5px">VIEW ALL &gt;</a>
+          </div>
+        </div>
+        <div id="queue-body">
+          <div class="empty">
+            <div class="empty-icon">⚡</div>
+            <div>No active decisions</div>
+            <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="App.nav('scenarios')">Run a Scenario</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidence Agents -->
+      <div class="card" style="padding:0">
+        <div class="card-hd" style="padding: 16px 20px; border-bottom: 1px solid var(--border)">
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text)">Evidence Agents
+            <small style="text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text3); margin-top: 4px; font-weight: 600">Live Pipeline · <span id="ag-online">8</span>/8 online</small>
+          </h3>
+        </div>
+        <div id="agents-panel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 02: Run Scenario -->
+  <section class="page" id="page-scenarios">
+    <div class="page-hdr">
+      <div>
+        <div class="page-meta">Decision Engine · Select Scenario</div>
+        <h1 class="page-title">Run Scenario</h1>
+        <p class="page-desc">Select a decision scenario to execute through the 8-stage pipeline. Pulls live evidence from the Catalog Intelligence database, evaluates 6-bidder objectives, and outputs actionable recommendations.</p>
+      </div>
+    </div>
+
+    <!-- Live Catalog Target Product Selector Toolbar -->
+    <div class="card" style="background:var(--card-bg, #fff);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">📦</span>
+        <div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--text)">Live Catalog Target Product</div>
+          <div style="font-size:.72rem;color:var(--text3)">Select an uploaded catalog product to evaluate against live database evidence, or use default scenario entity.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="sc-product-select" class="clar-inp" style="padding:6px 10px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;min-width:280px" onchange="ScenariosPage.onProductSelected()">
+          <option value="">-- Use Default Scenario Product --</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="ScenariosPage.refreshProducts()" title="Refresh Product List">↻ Refresh</button>
+      </div>
+    </div>
+
+    <div class="sc-grid" id="sc-grid"></div>
+
+    <div class="card" style="padding:18px;margin-top:20px;border-color:var(--border)">
+      <div class="sec-lbl" style="margin-bottom:8px;color:var(--text3)">Submit Custom Decision Request</div>
+      <div style="font-size:.76rem;color:var(--text3);margin-bottom:14px">
+        Manually trigger the NBA decision pipeline for a product or catalog entity. The system will auto-route evidence agents, evaluate DRE readiness, and generate multi-objective bidder evaluations.
+      </div>
+      
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;align-items:flex-end">
+        <div>
+          <label style="font-size:.74rem;font-weight:600;display:block;margin-bottom:4px">Decision Type</label>
+          <select id="cust-dt" class="clar-inp" style="padding:7px;height:auto;font-size:.8rem;border:1px solid var(--border)">
+            <option value="D1">D1 — Listing Readiness Risk</option>
+            <option value="D2">D2 — Category/Channel Placement</option>
+            <option value="D3">D3 — Data Decay Risk</option>
+            <option value="D4">D4 — Re-validation Cycle</option>
+            <option value="D5">D5 — Incomplete Listing Promotion</option>
+            <option value="D6">D6 — Source Reliability Health</option>
+            <option value="D7">D7 — Certification/Compliance Gap</option>
+            <option value="D8">D8 — Publish-Confidence Threshold</option>
+            <option value="D9">D9 — Catalog Expansion Opportunity</option>
+          </select>
+        </div>
+        
+        <div>
+          <label style="font-size:.74rem;font-weight:600;display:block;margin-bottom:4px">Product ID / Entity ID</label>
+          <input id="cust-entity" list="cust-products-list" type="text" class="clar-inp" style="padding:7px;font-size:.8rem;border:1px solid var(--border)" 
+            placeholder="Select from list or enter ID…">
+          <datalist id="cust-products-list"></datalist>
+        </div>
+        
+        <div>
+          <label style="font-size:.74rem;font-weight:600;display:block;margin-bottom:4px">Description / Context</label>
+          <input id="cust-desc" type="text" class="clar-inp" style="padding:7px;font-size:.8rem;border:1px solid var(--border)" 
+            placeholder="Describe product catalog context for review…">
+        </div>
+        
+        <button class="btn btn-primary" style="height:35px" onclick="ScenariosPage.runCustom()">
+          Submit Custom Decision
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 03: Mission Control -->
+  <section class="page" id="page-missioncontrol">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div class="page-meta" id="mc-crumb">Mission Control · —</div>
+        <h1 style="font-size:1.55rem;font-weight:700;letter-spacing:-.02em" id="mc-title">Select a scenario to begin</h1>
+      </div>
+      <span id="mc-chip"></span>
+    </div>
+
+    <!-- Pipeline tracker -->
+    <div id="mc-pipe-track" class="pipe-track mb20"></div>
+
+    <div class="g2" style="align-items:start;margin-bottom:20px">
+      <!-- Agent Network -->
+      <div class="net-wrap">
+        <div class="net-hd">
+          <span class="net-lbl" id="net-lbl">Agent Evidence Network</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+            <button id="mc-prev-stage" class="btn btn-outline btn-sm" style="padding: 2px 7px; font-size: .75rem; display: none;" onclick="MissionControlPage.prevStage()">←</button>
+            <span id="mc-stage-viewing-lbl" style="font-size: .75rem; color: var(--text3); font-weight: 600; display: none;"></span>
+            <button id="mc-next-stage" class="btn btn-outline btn-sm" style="padding: 2px 7px; font-size: .75rem; display: none;" onclick="MissionControlPage.nextStage()">→</button>
+            <div class="live-badge" id="mc-live-badge">LIVE</div>
+          </div>
+        </div>
+        <div id="net-display-area" style="width:100%;height:296px;background:#F8FAFC;position:relative"></div>
+        <div class="net-legend" id="net-legend-el">
+          <span>— Standing edge</span>
+          <span style="border-top:1px dashed var(--text3);width:18px;display:inline-block;vertical-align:middle"></span>
+          <span>Dynamic edge</span>
+          <span><span class="s-dot dot-g"></span> Online</span>
+          <span><span class="s-dot dot-a"></span> Degraded</span>
+        </div>
+      </div>
+
+      <!-- Live Feed -->
+      <div class="card" style="padding:0;max-height:370px;display:flex;flex-direction:column">
+        <div class="card-hd">
+          <span style="font-size:.85rem;font-weight:600">Live Execution Feed</span>
+          <div class="rec-badge" id="rec-badge">REC</div>
+        </div>
+        <div class="scroll-y" id="feed-body" style="flex:1;padding:10px 12px">
+          <div style="color:var(--text3);font-size:.76rem;text-align:center;padding:18px">Waiting for pipeline...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:20px">
+      <!-- DRE Panel -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <span style="font-size:.72rem;font-weight:600;letter-spacing:.02em">Decision Readiness Evaluator · VoI Loop</span>
+          <span class="chip c-gray" id="dre-iter-badge">Iteration —</span>
+        </div>
+        <div style="padding:15px 18px">
+          <div style="font-size:1.15rem;font-weight:700;margin-bottom:12px" id="dre-status">Ready</div>
+          <div class="g2">
+            <div>
+              <div class="sec-lbl" style="margin-bottom:5px">Top Gap · Highest VoI</div>
+              <div style="font-size:.84rem;font-weight:600" id="dre-gap">No gaps detected</div>
+              <div style="font-size:.72rem;color:var(--text3);margin-top:4px" id="dre-gap-d">—</div>
+              <div style="font-size:.68rem;color:var(--text3);margin-top:6px">Confidence: <span id="dre-conf" style="font-weight:600">—</span></div>
+            </div>
+            <div>
+              <div class="sec-lbl" style="margin-bottom:5px">DRE State Machine</div>
+              <div id="dre-states-el"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Per-Agent Progress -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <span style="font-size:.85rem;font-weight:600">Per-Agent Progress</span>
+        </div>
+        <div style="padding:8px 14px" id="ag-prog-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="card" style="padding:0">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+        <div style="padding:15px 22px;border-right:1px solid var(--border)">
+          <div class="sec-lbl">Facts Retrieved</div>
+          <div style="font-size:1.9rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px" id="mc-facts">--</div>
+        </div>
+        <div style="padding:15px 22px;border-right:1px solid var(--border)">
+          <div class="sec-lbl">Agents Complete</div>
+          <div style="font-size:1.9rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px" id="mc-agents">--</div>
+        </div>
+        <div style="padding:15px 22px;border-right:1px solid var(--border)">
+          <div class="sec-lbl">Aggregate Score</div>
+          <div style="font-size:1.9rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px" id="mc-score">--</div>
+        </div>
+        <div style="padding:15px 22px">
+          <div class="sec-lbl">Elapsed</div>
+          <div style="font-size:1.9rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px" id="mc-elapsed">--</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 04: Investigation -->
+  <section class="page" id="page-investigation">
+    <div class="mb20">
+      <div class="page-meta" id="inv-crumb">Investigation</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-.02em" id="inv-title">--</h1>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="inv-status-chip"></span>
+          <button class="btn btn-outline btn-sm" onclick="InvestigationPage.copyExecutiveSummary(App.currentDecision)">📋 Copy Summary</button>
+          <button class="btn btn-primary" id="inv-review-btn" onclick="App.nav('humanreview')">Go to human review →</button>
+        </div>
+      </div>
+      <div style="font-size:.82rem;color:var(--text2)" id="inv-subject">--</div>
+    </div>
+
+    <!-- Pipeline checkmarks -->
+    <div id="inv-pipe-track" class="pipe-track mb20"></div>
+
+    <!-- Dynamic Custom Content Panel tailored to the Decision Type -->
+    <div id="inv-dynamic-details" class="mb24"></div>
+
+    <!-- Evidence Timeline & Precedents Grid -->
+    <div class="inv-timeline-grid mb20">
+      <!-- Evidence Timeline -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Evidence Timeline
+            <small>GROUPED BY SOURCE · EVERY FACT CARRIES CONFIDENCE AND CITATION</small>
+          </h3>
+        </div>
+        <div style="padding:16px 20px" class="timeline-list" id="inv-evidence-timeline">
+          <!-- Populated dynamically by JS -->
+          <div style="color:var(--text3); font-size:.82rem; text-align:center; padding:20px">Loading evidence timeline...</div>
+        </div>
+      </div>
+
+      <!-- Precedents & Insights Column -->
+      <div style="display:flex; flex-direction:column; gap:20px">
+        <!-- Precedent Decisions -->
+        <div class="card" style="padding:0">
+          <div class="card-hd">
+            <h3>Precedent Decisions
+              <small>VECTOR RETRIEVAL · COSINE ≥ 0.81</small>
+            </h3>
+          </div>
+          <div style="padding:16px 20px" class="precedent-list" id="inv-precedents-list">
+            <!-- Populated dynamically by JS -->
+            <div style="color:var(--text3); font-size:.82rem; text-align:center; padding:20px">Loading precedents...</div>
+          </div>
+        </div>
+
+        <!-- Insights & Counterfactuals -->
+        <div class="card" style="padding:0">
+          <div class="card-hd">
+            <h3>Insights & Counterfactuals
+              <small>SYSTEM INTERPRETATION & RULES</small>
+            </h3>
+          </div>
+          <div style="padding:16px 20px" class="insight-list" id="inv-insights-list">
+            <!-- Populated dynamically by JS -->
+            <div style="color:var(--text3); font-size:.82rem; text-align:center; padding:20px">Loading insights...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision Outcome Tree -->
+    <div class="card mb20" style="padding:0">
+      <div class="card-hd">
+        <h3>Decision Outcome Tree
+          <small>3 branches · Impact figures are heuristic estimates</small>
+        </h3>
+      </div>
+      <div style="padding:18px">
+        <div class="ot-grid" id="ot-body"></div>
+      </div>
+    </div>
+
+    <!-- Multi-Objective Bidding -->
+    <div class="card mb20" style="padding:0">
+      <div class="card-hd">
+        <h3>Multi-Objective Bidding
+          <small>6 bidders · Scores on common 0–1 expected-positive-impact scale</small>
+        </h3>
+        <span id="compl-badge" class="chip c-green">⚡ Compliance · Pass</span>
+      </div>
+      <div style="padding:14px 18px;display:flex;gap:20px;align-items:start" class="bid-layout-wrap">
+        <div id="bid-radar-container" style="width:280px;height:280px;flex-shrink:0;background:#FFFFFF;border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;align-items:center;justify-content:center"></div>
+        <div class="bid-grid" id="bid-grid" style="flex:1"></div>
+      </div>
+    </div>
+
+    <!-- What-If Simulator -->
+    <div class="wi-section mb20">
+      <div class="wi-hd">
+        <div>
+          <h4>🧪 What-If Simulator</h4>
+          <small>Override any fact value and see how the recommendation score changes</small>
+        </div>
+        <span class="chip c-blue">Experimental</span>
+      </div>
+      <div class="wi-body">
+        <div class="wi-fields" id="wi-fields"></div>
+        <button class="btn btn-primary btn-sm" id="wi-btn">Simulate →</button>
+        <div id="wi-result" style="display:none" class="wi-result"></div>
+      </div>
+    </div>
+    <!-- Audit Trail & Execution Logs -->
+    <div class="g2 mb20" style="align-items:start">
+      <!-- Decision Audit Trail -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>🕒 Decision Audit Trail
+            <small>Chronological ledger of agent coordination and stage transitions</small>
+          </h3>
+        </div>
+        <div class="scroll-y" style="max-height:350px; padding: 0 14px 14px 14px;">
+          <table class="audit-table" style="width:100%;border-collapse:collapse;font-size:.76rem">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);color:var(--text3);text-transform:uppercase;font-size:.62rem;letter-spacing:0.5px">
+                <th style="text-align:left;padding:8px;font-family:'JetBrains Mono',monospace">Time</th>
+                <th style="text-align:left;padding:8px;font-family:'JetBrains Mono',monospace">Agent/Stage</th>
+                <th style="text-align:left;padding:8px">Action / Details</th>
+              </tr>
+            </thead>
+            <tbody id="audit-trail-body">
+              <tr>
+                <td colspan="3" style="text-align:center;color:var(--text3);padding:20px">No trace logs. Run a scenario to populate.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Execution Log -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>📄 Execution Log
+            <small>Console output trace from the Veridex core orchestrator</small>
+          </h3>
+        </div>
+        <div style="padding:14px 18px;background:#0F172A;color:#38BDF8;font-family:'JetBrains Mono',monospace;font-size:.74rem;line-height:1.5;border-radius:0 0 var(--radius) var(--radius);height:350px;overflow-y:auto;box-sizing:border-box" id="execution-log-body">
+          &gt; waiting for pipeline execution...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 05: Human Review -->
+  <section class="page" id="page-humanreview">
+    <div class="page-hdr">
+      <div>
+        <div class="page-meta" id="hr-crumb">Human Review · --</div>
+        <h1 class="page-title">Human Decision Required</h1>
+        <p class="page-desc">Nothing public, marketplace, or channel-facing executes without this step. The platform has done the analysis — the call is yours.</p>
+      </div>
+      <button class="btn btn-outline" onclick="App.nav('investigation')">← Back to investigation</button>
+    </div>
+
+    <div class="hr-layout">
+      <!-- Left: Summary + Decision -->
+      <div>
+        <div class="card" style="padding:18px 22px;margin-bottom:14px">
+          <div class="sec-lbl" style="margin-bottom:4px">Recommendation Summary</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div style="font-size:1.05rem;font-weight:700" id="hr-title">--</div>
+            <span id="hr-chip"></span>
+          </div>
+          <div class="sec-lbl" style="margin-bottom:5px">Action Awaiting Approval</div>
+          <div style="font-size:.98rem;font-weight:500;line-height:1.65;color:var(--text2);margin-bottom:14px" id="hr-action">--</div>
+
+          <div class="hr-stat-row">
+            <div><div class="hr-stat-v" id="hr-conf">--</div><div class="hr-stat-l">Confidence</div></div>
+            <div><div class="hr-stat-v" id="hr-bids">--</div><div class="hr-stat-l">Bids in Favor</div></div>
+            <div><div class="hr-stat-v" id="hr-compl">--</div><div class="hr-stat-l">Compliance</div></div>
+          </div>
+
+          <!-- Clarification (rendered dynamically) -->
+          <div id="clar-section"></div>
+
+          <!-- Decision buttons -->
+          <div class="dec-grid" id="dec-grid">
+            <button class="dec-btn dec-approve" onclick="HumanReviewPage.decide('accept')">
+              <div class="dec-btn-icon">✓</div>
+              <span class="dec-btn-label">Approve</span>
+              <span class="dec-btn-sub">Executes after sign-off</span>
+            </button>
+            <button class="dec-btn dec-modify" onclick="HumanReviewPage.decide('edit')">
+              <div class="dec-btn-icon">✎</div>
+              <span class="dec-btn-label">Modify</span>
+              <span class="dec-btn-sub">Edit before send</span>
+            </button>
+            <button class="dec-btn dec-decline" onclick="HumanReviewPage.decide('reject')">
+              <div class="dec-btn-icon">✕</div>
+              <span class="dec-btn-label">Decline</span>
+              <span class="dec-btn-sub">Halt and log</span>
+            </button>
+          </div>
+
+          <!-- Done state -->
+          <div id="dec-done" style="display:none;text-align:center;padding:14px;background:var(--bg-muted);border-radius:8px;margin-top:10px">
+            <div style="font-weight:700;margin-bottom:3px" id="dec-done-txt">--</div>
+            <div style="font-size:.76rem;color:var(--text2)">Decision recorded. No further action required.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Challenge + Compliance Lock -->
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <!-- Why-Not -->
+        <div class="challenge-box">
+          <div class="challenge-hd">
+            <h4>Challenge the recommendation</h4>
+            <p>Why not X — zero extra model calls · Queries pre-computed losing bids</p>
+          </div>
+          <div>
+            <input class="challenge-inp" id="wn-inp"
+              placeholder="e.g. Why not escalate directly to the AM?"
+              onkeydown="if(event.key==='Enter') HumanReviewPage.submitWhyNot()">
+          </div>
+          <div id="wn-ans" style="display:none" class="challenge-ans">
+            <div class="challenge-ans-l">Answer (from pre-computed bid state)</div>
+            <div class="challenge-ans-t" id="wn-txt">--</div>
+          </div>
+          <div id="wn-hint" style="padding:9px 14px;border-top:1px solid var(--border)">
+            <div style="color:var(--text3);font-size:.76rem">Press Enter to query the bid state</div>
+          </div>
+        </div>
+
+        <!-- Compliance Lock -->
+        <div class="compl-lock" id="compl-lock">
+          <div class="cl-hd">
+            <strong>🔒 Compliance Lock</strong>
+            <span>· Preview Only</span>
+          </div>
+          <div class="cl-body">
+            <div class="cl-title">
+              <span>If compliance had vetoed</span>
+              Bypasses bidding · Routes to compliance escalation
+            </div>
+            <div class="cl-desc" id="cl-desc">A Blocked state is terminal. The Decision Readiness Evaluator never proceeds to bidding when a compliance-relevant gap cannot be resolved. Human inputs do not unblock — escalation is the only path.</div>
+            <div class="cl-ft">Escalation · Awaiting Compliance Officer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 06: Platform Metrics -->
+  <section class="page" id="page-metrics">
+    <div class="page-hdr">
+      <div>
+        <div class="page-meta">Platform Performance</div>
+        <h1 class="page-title">Calibration &amp; Learning</h1>
+        <p class="page-desc">The platform's stated confidence vs. real outcomes. Every weight change is logged with a timestamp; calibration is sample-size-gated.</p>
+      </div>
+      <span class="chip c-amber" style="align-self:flex-start;margin-top:8px">Outcomes Correlational · V2 will run holdout</span>
+    </div>
+
+    <div class="met-layout mb24">
+      <!-- Influence Budget -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Bidder Influence Budget
+            <small>Decaying-influence mechanic · Spent when a bid wins · Refunded based on outcome</small>
+          </h3>
+        </div>
+        <div style="padding:4px 18px" id="inf-budget-body"></div>
+      </div>
+
+      <!-- Learning Loop -->
+      <div class="card" style="padding:0">
+        <div class="card-hd"><h3>Learning Loop</h3></div>
+        <div style="padding:14px 18px">
+          <div class="sec-lbl" style="margin-bottom:5px">Baseline vs. Current Accuracy</div>
+          <svg id="learn-chart" viewBox="0 0 300 160" style="width:100%;height:auto"></svg>
+          <div style="font-size:.74rem;color:var(--text2);margin-top:8px;line-height:1.5" id="learn-cap">Calibrated EMA over 12 weeks.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2 mb24">
+      <!-- Bidding Weights -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Bidding Weights
+            <small>Current weight · 30d delta</small>
+          </h3>
+        </div>
+        <div>
+          <table class="w-table" id="w-table">
+            <thead>
+              <tr><th>Bidder</th><th>Model</th><th>Weight</th><th>Δ 30d</th></tr>
+            </thead>
+            <tbody id="w-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Brier Scores -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Calibration · Brier Scores
+            <small>One tile per decision type · Lower is better · Sample-size-gated</small>
+          </h3>
+        </div>
+        <div style="padding:14px 18px">
+          <div class="brier-grid" id="brier-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Business Impact -->
+    <div class="card mb24" style="padding:0">
+      <div class="card-hd">
+        <h3>Platform Business Impact</h3>
+        <span class="chip c-blue">Live</span>
+      </div>
+      <div style="padding:14px 18px">
+        <div class="g3" id="biz-impact"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════ 07 CATALOG INTELLIGENCE PAGE ═══════════ -->
+  <section class="page" id="page-catalog">
+
+    <!-- HEADER -->
+    <div class="page-hdr" style="margin-bottom:24px">
+      <div>
+        <div class="page-meta">CATALOG INTELLIGENCE &#183; AI-POWERED INGESTION PIPELINE</div>
+        <h1 class="page-title" style="margin-bottom:4px">Catalog Intelligence</h1>
+        <p class="page-desc" style="margin-bottom:0">AI-powered product ingestion, validation, enrichment and evidence tracking.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="CatalogPage.load()">&#8635; Refresh</button>
+      </div>
+    </div>
+
+    <!-- ROW 1: KPI CARDS (6 TILES) -->
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px">
+      <div class="kpi-card" style="border-left:3px solid var(--text)">
+        <div class="kpi-num" style="margin-bottom:6px"><span>Total Products</span><span style="font-size:16px">&#128230;</span></div>
+        <div class="kpi-val" id="cat-kpi-products">0</div>
+        <div class="kpi-sub"><span class="s-dot dot-g"></span> In catalog DB</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--blue)">
+        <div class="kpi-num" style="margin-bottom:6px"><span>Total Fields</span><span style="font-size:16px">&#128196;</span></div>
+        <div class="kpi-val" id="cat-kpi-fields">0</div>
+        <div class="kpi-sub">Extracted attributes</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--green)">
+        <div class="kpi-num" style="margin-bottom:6px"><span>Verified &amp; Validated</span><span style="font-size:16px">&#10003;</span></div>
+        <div class="kpi-val" id="cat-kpi-val-pct" style="color:var(--green)">0%</div>
+        <div class="kpi-sub" id="cat-kpi-val-sub">0 source validated</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--purple)">
+        <div class="kpi-num" style="margin-bottom:6px"><span>LLM Enriched</span><span style="font-size:16px">&#129302;</span></div>
+        <div class="kpi-val" id="cat-kpi-llm-pct" style="color:var(--purple)">0%</div>
+        <div class="kpi-sub" id="cat-kpi-llm-sub">0 LLM inferred</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--amber)">
+        <div class="kpi-num" style="margin-bottom:6px"><span>Rule Inferred</span><span style="font-size:16px">&#128295;</span></div>
+        <div class="kpi-val" id="cat-kpi-rule-pct" style="color:var(--amber)">0%</div>
+        <div class="kpi-sub" id="cat-kpi-rule-sub">0 rule fallback</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--red)">
+        <div class="kpi-num" style="margin-bottom:6px"><span>Needs Review</span><span style="font-size:16px">&#9888;</span></div>
+        <div class="kpi-val" id="cat-kpi-review" style="color:var(--red)">0</div>
+        <div class="kpi-sub" id="cat-kpi-review-sub">0 unverified / flags</div>
+      </div>
+    </div>
+
+    <!-- ROW 2: CATALOG HEALTH + PIPELINE STATUS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+      <!-- Catalog Health -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Catalog Health &amp; Evidence Quality</h3>
+          <span class="chip c-green" id="cat-health-badge">Nominal</span>
+        </div>
+        <div style="padding:16px 20px">
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:5px">
+              <span style="color:var(--text2);font-weight:600">Verified &amp; Validated (Source-Backed)</span>
+              <span style="font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700" id="cat-h-val-pct">0%</span>
+            </div>
+            <div style="height:6px;background:var(--bg-muted);border-radius:3px;overflow:hidden">
+              <div id="cat-h-val-bar" style="height:100%;background:var(--green);width:0%;transition:width .6s;border-radius:3px"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:5px">
+              <span style="color:var(--text2);font-weight:600">LLM Enriched (Contextual AI)</span>
+              <span style="font-family:'JetBrains Mono',monospace;color:var(--purple);font-weight:700" id="cat-h-llm-pct">0%</span>
+            </div>
+            <div style="height:6px;background:var(--bg-muted);border-radius:3px;overflow:hidden">
+              <div id="cat-h-llm-bar" style="height:100%;background:var(--purple);width:0%;transition:width .6s;border-radius:3px"></div>
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:5px">
+              <span style="color:var(--text2);font-weight:600">Rule Inferred (Deterministic Fallback)</span>
+              <span style="font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:700" id="cat-h-rule-pct">0%</span>
+            </div>
+            <div style="height:6px;background:var(--bg-muted);border-radius:3px;overflow:hidden">
+              <div id="cat-h-rule-bar" style="height:100%;background:var(--amber);width:0%;transition:width .6s;border-radius:3px"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px">
+            <div style="text-align:center;background:var(--red-bg);border:1px solid var(--red-b);border-radius:8px;padding:10px">
+              <div style="font-size:1.4rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--red)" id="cat-h-flagged">0</div>
+              <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Flagged</div>
+            </div>
+            <div style="text-align:center;background:var(--amber-bg);border:1px solid var(--amber-b);border-radius:8px;padding:10px">
+              <div style="font-size:1.4rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--amber)" id="cat-h-conflicted">0</div>
+              <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Conflicted</div>
+            </div>
+            <div style="text-align:center;background:var(--blue-bg);border:1px solid var(--blue-b);border-radius:8px;padding:10px">
+              <div style="font-size:1.4rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--blue)" id="cat-h-review">0</div>
+              <div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Needs Review</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline Status (6 Stages) -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Pipeline Flow</h3>
+          <span class="chip c-blue">6 Stages</span>
+        </div>
+        <div style="padding:16px 20px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.60rem;font-weight:700;flex-shrink:0">IN</div>
+              <div style="flex:1"><div style="font-size:.78rem;font-weight:700">INGEST</div><div style="font-size:.68rem;color:var(--text3)">Parse CSV / XLSX / HTML / PDF</div></div>
+              <div class="chip c-dark" id="cat-pipe-ingest">0</div>
+            </div>
+            <div style="width:2px;height:8px;background:var(--border);margin-left:12px"></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.60rem;font-weight:700;flex-shrink:0">CL</div>
+              <div style="flex:1"><div style="font-size:.78rem;font-weight:700">CLEAN</div><div style="font-size:.68rem;color:var(--text3)">Normalize fields &amp; units</div></div>
+              <div class="chip c-blue" id="cat-pipe-clean">0</div>
+            </div>
+            <div style="width:2px;height:8px;background:var(--border);margin-left:12px"></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.60rem;font-weight:700;flex-shrink:0">VA</div>
+              <div style="flex:1"><div style="font-size:.78rem;font-weight:700">VALIDATE</div><div style="font-size:.68rem;color:var(--text3)">Plausibility &amp; consistency</div></div>
+              <div class="chip c-green" id="cat-pipe-validate">0</div>
+            </div>
+            <div style="width:2px;height:8px;background:var(--border);margin-left:12px"></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.60rem;font-weight:700;flex-shrink:0">EN</div>
+              <div style="flex:1"><div style="font-size:.78rem;font-weight:700">ENRICH</div><div style="font-size:.68rem;color:var(--text3)">3-tier evidence inference</div></div>
+              <div class="chip c-purple" id="cat-pipe-enrich">0</div>
+            </div>
+            <div style="width:2px;height:8px;background:var(--border);margin-left:12px"></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:26px;height:26px;border-radius:50%;background:#0D9488;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.60rem;font-weight:700;flex-shrink:0">VE</div>
+              <div style="flex:1"><div style="font-size:.78rem;font-weight:700">VERIFY</div><div style="font-size:.68rem;color:var(--text3)">Evidence quality grading</div></div>
+              <div style="background:#F0FDFA;color:#0D9488;border:1px solid #99F6E4;border-radius:4px;font-size:.63rem;font-weight:700;padding:2px 8px" id="cat-pipe-verify">0</div>
+            </div>
+            <div style="width:2px;height:8px;background:var(--border);margin-left:12px"></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:26px;height:26px;border-radius:50%;background:#475569;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.60rem;font-weight:700;flex-shrink:0">EX</div>
+              <div style="flex:1"><div style="font-size:.78rem;font-weight:700">EXPLAIN</div><div style="font-size:.68rem;color:var(--text3)">Audit trail &amp; human checkpoints</div></div>
+              <div class="chip c-dark" id="cat-pipe-explain">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: UPLOAD WORKSPACE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+      <!-- Single Source Upload -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <div>
+            <h3>Process One Source</h3>
+            <small style="font-size:.68rem;color:var(--text3);font-weight:400">Single file &#8212; inline pipeline, immediate results</small>
+          </div>
+          <span class="chip c-blue">CSV / XLSX / HTML / PDF</span>
+        </div>
+        <div style="padding:18px">
+          <div id="cat-single-drop" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:14px" onclick="document.getElementById('cat-single-file').click()">
+            <div style="font-size:1.4rem;margin-bottom:4px">&#128196;</div>
+            <div style="font-size:.82rem;font-weight:600;color:var(--text2)">Click to select a file</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:2px">CSV, XLSX, HTML, or PDF</div>
+          </div>
+          <input type="file" id="cat-single-file" accept=".csv,.xlsx,.xls,.html,.htm,.pdf" style="display:none" onchange="CatalogPage.onSingleFileSelect(this)">
+          <div id="cat-single-file-info" style="display:none;background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><div style="font-weight:600;color:var(--text);font-size:.82rem" id="cat-single-fname"></div><div style="color:var(--text3);font-size:.7rem;margin-top:1px" id="cat-single-fsize"></div></div>
+              <button style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:1rem" onclick="CatalogPage.clearSingleFile()">&#10005;</button>
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:.72rem;color:var(--text3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Optional Product Name Override</label>
+            <input type="text" id="cat-single-name" placeholder="e.g. Industrial Heavy Duty Water Pump" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:.82rem;background:var(--bg);color:var(--text);outline:none">
+          </div>
+          <div id="cat-single-result" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:6px;font-size:.78rem"></div>
+          <button class="btn btn-primary" id="cat-single-submit" style="width:100%" onclick="CatalogPage.uploadSingleFile()">Upload &amp; Run Pipeline</button>
+        </div>
+      </div>
+
+      <!-- Batch Processing -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <div>
+            <h3>Batch Processing</h3>
+            <small style="font-size:.68rem;color:var(--text3);font-weight:400">Multiple files with live SSE progress stream</small>
+          </div>
+          <span style="background:#F3F0FF;color:var(--purple);border:1px solid #DDD6FE;border-radius:4px;font-size:.63rem;font-weight:700;padding:3px 8px;letter-spacing:.04em">ASYNC SSE</span>
+        </div>
+        <div style="padding:18px">
+          <div id="cat-batch-drop" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:14px" onclick="document.getElementById('cat-batch-file').click()">
+            <div style="font-size:1.4rem;margin-bottom:4px">&#128193;</div>
+            <div style="font-size:.82rem;font-weight:600;color:var(--text2)">Click to select multiple files</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:2px">Any combination of CSV, XLSX, HTML, PDF</div>
+          </div>
+          <input type="file" id="cat-batch-file" accept=".csv,.xlsx,.xls,.html,.htm,.pdf" multiple style="display:none" onchange="CatalogPage.onBatchFilesSelect(this)">
+          <div id="cat-batch-file-info" style="display:none;margin-bottom:14px">
+            <div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:10px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <div style="font-weight:700;font-size:.82rem" id="cat-batch-count-lbl">0 files selected</div>
+                <button style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:.72rem" onclick="CatalogPage.clearBatchFiles()">Clear</button>
+              </div>
+              <div id="cat-batch-file-list" style="font-size:.72rem;color:var(--text2);display:flex;flex-direction:column;gap:3px"></div>
+            </div>
+          </div>
+          <button class="btn" id="cat-batch-submit" style="width:100%;background:var(--purple);color:#fff;border-color:var(--purple)" onclick="CatalogPage.uploadBatchFiles()">&#9889; Start Batch Pipeline</button>
+          <div id="cat-job-box" style="display:none;margin-top:14px;background:#0F0A1E;border:1px solid #3730A3;border-radius:8px;padding:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-weight:700;color:#A5B4FC;font-size:.73rem;text-transform:uppercase;letter-spacing:.06em">&#9679; Live Pipeline Stream</span>
+              <div style="display:flex;gap:8px;font-size:.7rem">
+                <span style="color:#6EE7B7">&#10003; <span id="cat-job-created">0</span> created</span>
+                <span style="color:#FCA5A5">= <span id="cat-job-dupes">0</span> dupes</span>
+                <span style="color:#FCD34D">! <span id="cat-job-failed">0</span> failed</span>
+              </div>
+            </div>
+            <div style="width:100%;height:5px;background:#1E1B4B;border-radius:3px;overflow:hidden;margin-bottom:10px">
+              <div id="cat-job-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#6366F1,#8B5CF6);transition:width .3s;border-radius:3px"></div>
+            </div>
+            <div id="cat-job-feed" style="max-height:140px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:.69rem;color:#CBD5E1;line-height:1.7"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 4: PRODUCT CATALOG TABLE -->
+    <div class="card mb24" style="padding:0">
+      <div class="card-hd">
+        <div>
+          <h3>Product Catalog</h3>
+          <small style="font-size:.68rem;color:var(--text3);font-weight:400">Click a row to view fields, validation &amp; evidence</small>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="chip c-gray" id="cat-prod-count-badge">0 products</span>
+          <button class="btn btn-danger btn-sm" onclick="CatalogPage.clearDemoData()">&#128465; Clear Demo Data</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <thead>
+            <tr style="background:var(--bg-sub);border-bottom:2px solid var(--border);text-align:left;color:var(--text3);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em">
+              <th style="padding:10px 16px">Product</th>
+              <th style="padding:10px 8px">Source</th>
+              <th style="padding:10px 8px">Fields</th>
+              <th style="padding:10px 8px">Evidence Quality</th>
+              <th style="padding:10px 8px">Enrichment</th>
+              <th style="padding:10px 8px">Status</th>
+              <th style="padding:10px 16px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cat-products-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No catalog products ingested yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUCT DETAIL PANEL -->
+    <div class="card mb24" id="cat-product-detail" style="display:none;padding:0">
+      <div class="card-hd">
+        <div>
+          <h3 id="cat-detail-title">Product Detail</h3>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:2px" id="cat-detail-id"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="CatalogPage.validateCurrentProduct()">&#10003; Validate</button>
+          <button class="btn btn-primary btn-sm" onclick="CatalogPage.enrichCurrentProduct()">&#128161; Enrich</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('cat-product-detail').style.display='none'">&#10005;</button>
+        </div>
+      </div>
+      <div id="cat-detail-result" style="display:none;padding:10px 20px;font-size:.78rem;border-bottom:1px solid var(--border)"></div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.79rem">
+          <thead>
+            <tr style="background:var(--bg-sub);border-bottom:1px solid var(--border);text-align:left;color:var(--text3);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em">
+              <th style="padding:9px 16px">Field</th>
+              <th style="padding:9px 8px">Value</th>
+              <th style="padding:9px 8px">Status</th>
+              <th style="padding:9px 8px">Confidence</th>
+              <th style="padding:9px 8px">Method</th>
+              <th style="padding:9px 8px">Source / Reason</th>
+              <th style="padding:9px 16px;text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cat-fields-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INTELLIGENCE VERIFICATION PANEL -->
+    <div class="card mb24" style="padding:0">
+      <div class="card-hd">
+        <div>
+          <h3>Intelligence Verification</h3>
+          <small style="font-size:.68rem;color:var(--text3);font-weight:400">System health &amp; pipeline smoke test</small>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="CatalogPage.runPipelineCheck()">&#9654; Run Pipeline Check</button>
+      </div>
+      <div style="padding:16px 20px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg-muted);border-radius:8px;padding:12px 14px">
+            <span class="s-dot dot-g"></span>
+            <div><div style="font-size:.72rem;font-weight:700">Validation Engine</div><div style="font-size:.62rem;color:var(--text3)">Operational</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg-muted);border-radius:8px;padding:12px 14px">
+            <span class="s-dot dot-g"></span>
+            <div><div style="font-size:.72rem;font-weight:700">Enrichment Engine</div><div style="font-size:.62rem;color:var(--text3)" id="cat-enr-mode-lbl">Checking...</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg-muted);border-radius:8px;padding:12px 14px">
+            <span style="font-size:1.1rem">&#128202;</span>
+            <div><div style="font-size:.72rem;font-weight:700">Fields Validated</div><div style="font-size:.82rem;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace" id="cat-verify-validated">--</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg-muted);border-radius:8px;padding:12px 14px">
+            <span style="font-size:1.1rem">&#128200;</span>
+            <div><div style="font-size:.72rem;font-weight:700">Fields Enriched</div><div style="font-size:.82rem;font-weight:700;color:var(--amber);font-family:'JetBrains Mono',monospace" id="cat-verify-enriched">--</div></div>
+          </div>
+        </div>
+        <div id="cat-pipeline-result" style="display:none;background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-weight:700;font-size:.88rem">Pipeline Check Result</span>
+            <span id="cat-pipeline-badge" class="chip c-green">PASS</span>
+          </div>
+          <div id="cat-pipeline-stages" style="font-family:'JetBrains Mono',monospace;font-size:.72rem;line-height:2;color:var(--text2)"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ═══════════ SEARCH MODAL ═══════════ -->
+<div class="s-modal" id="s-modal" onclick="if(event.target===this) App.closeSearch()">
+  <div class="s-box">
+    <div class="s-inp-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input class="s-inp" id="s-inp"
+        placeholder="Search decisions, products, suppliers..."
+        oninput="App.searchFilter(this.value)"
+        onkeydown="if(event.key==='Escape') App.closeSearch()">
+      <span class="tb-kbd">ESC</span>
+    </div>
+    <div class="s-results" id="s-results">
+      <div style="padding:18px;text-align:center;color:var(--text3);font-size:.8rem">Start typing to search...</div>
+    </div>
+    <div class="s-footer">
+      <span>↩ open</span>
+      <span>Esc close</span>
+      <span>⌘1–6 navigate</span>
+      <span>⌘K search</span>
+    </div>
+  </div>
+</div>
+
+<!-- Catalog Field Explanation Modal -->
+<div class="s-modal" id="cat-exp-modal" onclick="if(event.target===this) CatalogPage.closeExplanationModal()">
+  <div class="s-box" style="max-width:700px">
+    <div class="s-inp-wrap" style="justify-content:space-between;border-bottom:1px solid var(--border);padding:14px 18px">
+      <span style="font-weight:700;font-size:.9rem" id="cat-exp-title">Field Explanation</span>
+      <button class="btn btn-outline btn-sm" onclick="CatalogPage.closeExplanationModal()">&#10005; Close</button>
+    </div>
+    <div id="cat-exp-body" style="padding:18px;max-height:60vh;overflow-y:auto;font-size:.82rem;line-height:1.7"></div>
+  </div>
+</div>
+
+<!-- ═══════════ SCRIPTS (order matters) ═══════════ -->
+<script src="/js/constants.js"></script>
+<script src="/js/helpers.js"></script>
+<script src="/js/pages/command.js"></script>
+<script src="/js/pages/scenarios.js"></script>
+<script src="/js/pages/investigation.js"></script>
+<script src="/js/pages/humanreview.js"></script>
+<script src="/js/pages/metrics.js"></script>
+<script src="/js/pages/catalog.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>

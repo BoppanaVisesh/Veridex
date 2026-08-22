@@ -1,0 +1,15 @@
+# Veridex NBA Platform — Dependencies
+# Install with: pip install -r requirements.txt
+
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic==2.9.0
+python-dotenv==1.0.1
+networkx==3.3
+
+# Catalog Intelligence Ingestion & Parsing
+pandas>=2.0.0
+openpyxl>=3.1.0
+beautifulsoup4>=4.12.0
+pypdf>=4.0.0
+python-multipart>=0.0.9
