@@ -917,7 +917,7 @@ const InvestigationPage = {
 
     // Explanation & HITL
     logHtml += `<span style="color:#64748B">&gt; explain.attach(rationale, counterfactuals=3, precedents=3)</span><br>`;
-    logHtml += `<span style="color:#64748B">&gt; hitl.enqueue(approver="XLVentures", urgency="${d.awaiting_human ? 'same-day' : 'none'}")</span><br>`;
+    logHtml += `<span style="color:#64748B">&gt; hitl.enqueue(approver="CatalogOps", urgency="${d.awaiting_human ? 'same-day' : 'none'}")</span><br>`;
 
     logBody.innerHTML = logHtml;
   },

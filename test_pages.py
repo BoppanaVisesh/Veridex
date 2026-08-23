@@ -1,117 +1,122 @@
-"""Smoke-test all 7 nav pages via their backend endpoints."""
-import requests, json
+"""
+Targeted audit of all API endpoints used by the 7 nav pages.
+Tests exactly what each page's JS calls.
+"""
+import requests, time
 
 BASE = "http://localhost:8000/api"
+PASS, FAIL = [], []
 
-results = {}
-
-def check(label, method, path, body=None):
+def chk(label, method, path, body=None):
+    url = BASE + path
     try:
-        if method == "GET":
-            r = requests.get(BASE + path, timeout=10)
-        else:
-            r = requests.post(BASE + path, json=body or {}, timeout=10)
+        r = requests.request(method, url, json=body, timeout=8)
         ok = r.status_code < 400
+        status = r.status_code
         try:
-            data = r.json()
+            snippet = str(r.json())[:80]
         except Exception:
-            data = r.text[:200]
-        results[label] = {"status": r.status_code, "ok": ok, "data": data}
-        mark = "[PASS]" if ok else "[FAIL]"
-        print(f"{mark} {label} -> HTTP {r.status_code}")
-        return data
+            snippet = r.text[:80]
+        mark = "OK  " if ok else "FAIL"
+        print(f"  [{mark}] {method:4} {path:50} -> {status}  {snippet}")
+        (PASS if ok else FAIL).append(label)
+        return r.json() if ok else None
     except Exception as e:
-        results[label] = {"status": "ERR", "ok": False, "error": str(e)}
-        print(f"[ERR ] {label} -> {e}")
+        print(f"  [ERR ] {method:4} {path:50} -> {e}")
+        FAIL.append(label)
         return None
 
-print("=" * 60)
-print("PAGE 01 — Command Center")
-print("=" * 60)
-health = check("health", "GET", "/health")
-decisions = check("decisions list", "GET", "/decisions")
-agents = check("agents list", "GET", "/agents")
-metrics = check("platform metrics", "GET", "/metrics")
+# Wait for server
+time.sleep(2)
+print("=" * 72)
+print("PAGE 01 - Command Center")
+print("=" * 72)
+chk("health",    "GET", "/health")
+d = chk("decisions", "GET", "/decisions")
+decisions = (d.get("decisions",[]) if isinstance(d,dict) else d) or []
+live = [x for x in decisions if not x.get("decision_id","").startswith("HIST-") and x.get("description")]
+chk("scenarios", "GET", "/scenarios")
 
 print()
-print("=" * 60)
-print("PAGE 02 — Run Scenario")
-print("=" * 60)
-scenarios = check("scenarios list", "GET", "/scenarios")
-# Check catalog products (used by scenario product picker)
-cat_prods = check("catalog products", "GET", "/catalog/products")
+print("=" * 72)
+print("PAGE 02 - Run Scenario")
+print("=" * 72)
+chk("scenarios list",  "GET", "/scenarios")
+chk("catalog products","GET", "/catalog/products")
 
 print()
-print("=" * 60)
-print("PAGE 03 — Mission Control")
-print("=" * 60)
-# Mission control needs a decision to show pipeline
-if decisions and len(decisions) > 0:
-    did = decisions[0].get("decision_id", "")
-    if did:
-        check(f"decision detail [{did[:12]}]", "GET", f"/decisions/{did}")
+print("=" * 72)
+print("PAGES 03/04/05 - Mission Control / Investigation / Human Review")
+print("(requires a live decision)")
+print("=" * 72)
+
+if not live:
+    print("  No live decisions — creating one via D7 scenario...")
+    r2 = chk("run D7", "POST", "/decisions/run-scenario", {"decision_type": "D7"})
+    if r2 and r2.get("decision_id"):
+        live = [r2]
+
+if live:
+    did = live[0]["decision_id"]
+    print(f"  Using decision: {did}")
+    chk("decision detail",   "GET",  f"/decisions/{did}")
+    chk("decision progress", "GET",  f"/decisions/{did}/progress")
+    chk("trace",             "GET",  f"/trace/{did}")
+    chk("why-not",           "POST", f"/decisions/{did}/why-not", {"alternative": "reject"})
+    # Wait briefly for pipeline to complete before whatif
+    time.sleep(3)
+    chk("whatif",            "POST", f"/decisions/{did}/whatif",  {"overrides": {"field_completeness_pct": 90}})
+    chk("respond",           "POST", f"/decisions/{did}/respond", {"decision": "accept", "edit_description": ""})
 else:
-    print("  [SKIP] No decisions in DB yet — run a scenario first")
+    print("  [SKIP] Could not create decision")
 
 print()
-print("=" * 60)
-print("PAGE 04 — Investigation")
-print("=" * 60)
-if decisions and len(decisions) > 0:
-    did = decisions[0].get("decision_id", "")
-    if did:
-        check(f"decision evidence [{did[:12]}]", "GET", f"/decisions/{did}/evidence")
-        check(f"decision precedents [{did[:12]}]", "GET", f"/decisions/{did}/precedents")
+print("=" * 72)
+print("PAGE 06 - Platform Metrics")
+print("=" * 72)
+chk("metrics",            "GET", "/metrics")
+chk("metrics/influence",  "GET", "/metrics/influence")
+chk("metrics/weights",    "GET", "/metrics/weights")
+chk("metrics/calibration","GET", "/metrics/calibration")
+chk("evaluate",           "GET", "/evaluate")
+
+print()
+print("=" * 72)
+print("PAGE 07 - Catalog Intelligence")
+print("=" * 72)
+chk("catalog/health",           "GET",  "/catalog/health")
+chk("catalog/dashboard",        "GET",  "/catalog/dashboard")
+chk("catalog/enrichment-mode",  "GET",  "/catalog/enrichment-mode")
+chk("catalog/products",         "GET",  "/catalog/products")
+chk("catalog/pipeline-check",   "POST", "/catalog/pipeline-check", {})
+# clear-demo-data requires confirmed=true — safety guard by design
+chk("catalog/clear-demo-data",  "POST", "/catalog/clear-demo-data", {"confirmed": True})
+
+# Get a product ID for detail endpoints
+prod = chk("catalog/products (for ID)", "GET", "/catalog/products")
+if isinstance(prod, list) and prod:
+    pid = prod[0].get("id") or prod[0].get("product_id","")
+    if pid:
+        chk(f"catalog/products/{pid}", "GET", f"/catalog/products/{pid}")
+        chk(f"validate product",       "POST", f"/catalog/products/{pid}/validate", {})
+        chk(f"enrich product",         "POST", f"/catalog/products/{pid}/enrich",   {})
+        chk(f"explain field",          "GET",  f"/catalog/products/{pid}/explain/name")
+
+print()
+print("=" * 72)
+print("PAGE 08 - Unilog Intelligence")
+print("=" * 72)
+chk("unilog-preview",       "GET", "/catalog/unilog-preview?limit=3")
+chk("unilog-sample-export csv",  "GET", "/catalog/unilog-sample-export?limit=5&fmt=csv")
+chk("unilog-sample-export xlsx", "GET", "/catalog/unilog-sample-export?limit=5&fmt=xlsx")
+
+print()
+print("=" * 72)
+print(f"SUMMARY: {len(PASS)} PASS | {len(FAIL)} FAIL")
+print("=" * 72)
+if FAIL:
+    print("FAILED endpoints:")
+    for f in FAIL:
+        print(f"  - {f}")
 else:
-    print("  [SKIP] No decisions in DB yet")
-
-print()
-print("=" * 60)
-print("PAGE 05 — Human Review")
-print("=" * 60)
-if decisions and len(decisions) > 0:
-    d = decisions[0]
-    did = d.get("decision_id", "")
-    check(f"decision for review [{did[:12]}]", "GET", f"/decisions/{did}")
-else:
-    print("  [SKIP] No decisions in DB yet")
-
-print()
-print("=" * 60)
-print("PAGE 06 — Platform Metrics")
-print("=" * 60)
-check("metrics detail", "GET", "/metrics")
-check("bidders list", "GET", "/bidders")
-check("weights list", "GET", "/weights")
-
-print()
-print("=" * 60)
-print("PAGE 07 — Catalog Intelligence")
-print("=" * 60)
-check("catalog health", "GET", "/catalog/health")
-check("catalog dashboard", "GET", "/catalog/dashboard")
-check("catalog enrichment-mode", "GET", "/catalog/enrichment-mode")
-check("catalog pipeline-check", "POST", "/catalog/pipeline-check")
-check("catalog products list", "GET", "/catalog/products")
-
-print()
-print("=" * 60)
-print("PAGE 08 — Unilog Intelligence")
-print("=" * 60)
-check("unilog preview", "GET", "/catalog/unilog-preview?limit=3")
-check("unilog sample export (xlsx)", "GET", "/catalog/unilog-sample-export?limit=5&fmt=xlsx")
-
-print()
-print("=" * 60)
-print("SUMMARY")
-print("=" * 60)
-passed = sum(1 for v in results.values() if v["ok"])
-failed = [k for k, v in results.items() if not v["ok"]]
-print(f"Passed: {passed}/{len(results)}")
-if failed:
-    print("FAILED:")
-    for f in failed:
-        v = results[f]
-        print(f"  - {f}: HTTP {v.get('status')} | {str(v.get('error',''))[:120]}")
-else:
-    print("All endpoints OK!")
+    print("All endpoints healthy!")

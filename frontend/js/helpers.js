@@ -489,7 +489,7 @@ function renderOptimizerStage(type, data) {
   
   const W = 520, H = 296;
   const top = (data?.recommended_actions || [])[0] || {};
-  const explanation = top.explanation || 'Negotiating pay margins based on ATS rates and history.';
+  const explanation = top.explanation || 'Evaluating enrichment confidence, attribute completeness, and taxonomy alignment.';
   
   let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block">`;
   s += `<style>
@@ -561,10 +561,10 @@ function renderExplanationStage(type, data) {
       </div>
       
       <div style="background:#1E293B;border:1px solid #334155;border-radius:6px;padding:10px 12px;font-size:.75rem">
-        <strong style="color:#60A5FA;font-size:.7rem;letter-spacing:0.5px">WHAT-IF MARGIN SIMULATION:</strong>
+        <strong style="color:#60A5FA;font-size:.7rem;letter-spacing:0.5px">WHAT-IF COMPLETENESS SIMULATION:</strong>
         <div style="margin-top:6px;color:#E2E8F0;line-height:1.4">
-          • At Bill Rate <strong>$110/hr</strong>: Margin is 31.6% (CS risk spikes)<br>
-          • At Bill Rate <strong>$95/hr</strong>: Margin is 21.2% (Optimal retention)
+          • At Completeness <strong>95%</strong>: Publish confidence HIGH (risk minimal)<br>
+          • At Completeness <strong>72%</strong>: Enrichment required before syndication
         </div>
       </div>
     </div>
@@ -600,7 +600,7 @@ function renderHumanReviewConsole(data) {
     <div style="background:#1E293B;border:1px solid #334155;border-radius:6px;padding:8px 12px;font-size:.76rem;line-height:1.45;margin:6px 0;max-height:120px;overflow-y:auto;box-sizing:border-box">
       <strong style="color:#60A5FA;font-size:.65rem;letter-spacing:0.5px;margin-bottom:2px;display:block">RECOMMENDED NBA ACTION PATH:</strong>
       <div style="color:#fff;font-weight:700;font-size:.8rem;line-height:1.3">${esc(top.description || 'Proceed with placement')}</div>
-      <div style="color:#94A3B8;font-size:.7rem;margin-top:3px;line-height:1.3">${esc(top.explanation || 'Calculated optimal balance of target gross margins and retention benchmarks.')}</div>
+      <div style="color:#94A3B8;font-size:.7rem;margin-top:3px;line-height:1.3">${esc(top.explanation || 'Calculated optimal enrichment path balancing data quality, compliance, and publish velocity.')}</div>
     </div>
     
     <div style="display:flex;gap:8px;margin-top:2px">

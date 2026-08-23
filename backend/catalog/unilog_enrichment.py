@@ -137,14 +137,22 @@ def _normalise_brand(e1_brand: str, unilog_brand: str, dib_brand: str,
 
 # Keyword → (Dept, Class, Fine, Classpath)
 TAXONOMY_RULES: list[tuple[re.Pattern, tuple[str, str, str, str]]] = [
-    # Abrasives
+    # Flap discs
+    (re.compile(r'\bflap disc\b', re.I),
+     ("Abrasives & Surface Preparation", "Cutting & Grinding", "Flap Discs",
+      "Abrasives & Surface Preparation>Cutting & Grinding>Flap Discs")),
+    # Angle grinders
+    (re.compile(r'\bangle grinder\b', re.I),
+     ("Tools & Equipment", "Power Tools", "Angle Grinders",
+      "Tools & Equipment>Power Tools>Angle Grinders")),
+    # Grinding / cut-off discs
+    (re.compile(r'\b(cut.?off disc|grinding wheel|cut and grind|grinding disc|grind disc)\b', re.I),
+     ("Abrasives & Surface Preparation", "Cutting & Grinding", "Cut-Off & Grinding Discs",
+      "Abrasives & Surface Preparation>Cutting & Grinding>Cut-Off & Grinding Discs")),
+    # Generic abrasives
     (re.compile(r'\b(sanding belt|sanding disc|sanding sponge|abrasive|abranet|cubitron|hiolit|stikit)\b', re.I),
      ("Abrasives & Surface Preparation", "Abrasives", "Sanding Belts & Discs",
       "Abrasives & Surface Preparation>Abrasives>Sanding Belts & Discs")),
-    # Cut-off & grinding discs
-    (re.compile(r'\b(cut.?off disc|grinding wheel|cut and grind)\b', re.I),
-     ("Abrasives & Surface Preparation", "Cutting & Grinding", "Cut-Off & Grinding Discs",
-      "Abrasives & Surface Preparation>Cutting & Grinding>Cut-Off & Grinding Discs")),
     # Dishwashers
     (re.compile(r'\bdishwasher\b', re.I),
      ("Appliances & Consumer Electronics", "Kitchen Appliances", "Built-In Dishwashers",
@@ -640,8 +648,15 @@ def enrich_unilog_row(row: dict) -> dict:
     return out
 
 
-def enrich_unilog_batch(rows: list[dict]) -> list[dict]:
-    """Enrich a list of raw Unilog input rows."""
+def enrich_unilog_batch(rows) -> list[dict]:
+    """Enrich a list of raw Unilog input rows or a pandas DataFrame."""
+    try:
+        # Support pandas DataFrame input
+        import pandas as pd
+        if isinstance(rows, pd.DataFrame):
+            rows = rows.to_dict('records')
+    except ImportError:
+        pass
     return [enrich_unilog_row(r) for r in rows]
 
 

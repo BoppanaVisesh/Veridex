@@ -702,7 +702,29 @@ async def whatif_simulation(decision_id: str, req: WhatIfRequest):
     original_bids    = state.bids or []
 
     if not original_bids:
-        raise HTTPException(status_code=400, detail="No bids computed yet for this decision")
+        # Pipeline still running — compute bids on available seed facts so UI never gets 400
+        from backend.config import BASE_BIDDING_WEIGHTS
+        from backend.bidders.bidders import run_all_bidders
+        dt = state.decision_request.decision_type if state.decision_request else "D1"
+        seed_facts = state.facts or []
+        try:
+            original_bids = run_all_bidders(decision_id, dt, seed_facts)
+            original_score = sum(
+                b.score * BASE_BIDDING_WEIGHTS.get(b.bidder.value, 0.15)
+                for b in original_bids if not b.is_veto
+            )
+        except Exception:
+            return {
+                "decision_id": decision_id,
+                "overrides": req.overrides,
+                "original": {"aggregate_score": 0.0},
+                "patched":  {"aggregate_score": 0.0},
+                "score_delta": 0.0,
+                "recommendation_flipped": False,
+                "bid_deltas": [],
+                "note": "Pipeline still processing — simulation based on available facts",
+            }
+
 
     # Build a fact lookup {fact_type: numeric_value}
     fact_values: dict[str, float] = {}

@@ -668,7 +668,7 @@ async def unilog_export(
 
     buf = io.BytesIO()
     if fmt == "csv":
-        csv_bytes = out_df.to_csv(index=False).encode("utf-8-sig")
+        csv_bytes = out_df.to_csv(index=False).encode("utf-8")
         return Response(
             content=csv_bytes,
             media_type="text/csv",
@@ -750,7 +750,7 @@ async def unilog_sample_export(
 
     buf = io.BytesIO()
     if fmt == "csv":
-        csv_bytes = out_df.to_csv(index=False).encode("utf-8-sig")
+        csv_bytes = out_df.to_csv(index=False).encode("utf-8")
         return Response(
             content=csv_bytes,
             media_type="text/csv",
