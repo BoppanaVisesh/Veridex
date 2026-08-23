@@ -53,12 +53,19 @@ MFR_EXPANSIONS = {
     "werto": "Wera Tools",
 }
 
-# Brand field mappings (cleaned values)
+# Brand field mappings (cleaned values) — with ® / ™ suffixes matching Delivery Format
 BRAND_CANONICAL = {
     "trex": "Trex®", "timbertech": "TimberTech®", "jameshardie": "James Hardie®",
     "lp smartside": "LP® SmartSide®", "hager": "Hager®", "provia": "ProVia®",
     "dsi westbury": "DSI Westbury®", "ajm": "AJM®",
     "united window & door": "United Window & Door™",
+    "frigidaire": "FRIGIDAIRE®", "whirlpool": "Whirlpool®",
+    "ge": "GE®", "maytag": "Maytag®", "kitchenaid": "KitchenAid®",
+    "lg": "LG®", "samsung": "Samsung®",
+    "milwaukee": "Milwaukee®", "dewalt": "DeWalt®",
+    "bosch": "Bosch®", "makita": "Makita®",
+    "3m": "3M", "diablo": "Diablo", "mirka": "Mirka",
+    "freud": "Freud®", "irwin": "Irwin®", "stanley": "Stanley®",
 }
 
 
@@ -133,140 +140,196 @@ def _normalise_brand(e1_brand: str, unilog_brand: str, dib_brand: str,
     return mfr_name
 
 
+# ── MPN Prefix → Brand lookup (for cases where all brand fields are distributor placeholders)
+MPN_BRAND_PREFIXES: list[tuple[re.Pattern, str]] = [
+    (re.compile(r'^PDS|^FFF|^FRT|^FRS|^FBD|^FAD', re.I), 'FRIGIDAIRE®'),
+    (re.compile(r'^WDT|^WDF|^WRS|^WRX|^MDB|^WFW|^WTW', re.I), 'Whirlpool®'),
+    (re.compile(r'^MDB', re.I), 'Maytag®'),
+    (re.compile(r'^GDT|^GDF|^GDP|^CDT|^CDW', re.I), 'GE®'),
+    (re.compile(r'^DCB|^DCS|^DCF|^DCK|^DCD|^DCG|^DCS', re.I), 'DeWalt®'),
+    (re.compile(r'^2705|^2615|^DCS|^MIL|^2135', re.I), 'Milwaukee®'),
+    (re.compile(r'^GBH|^GWS|^GEX', re.I), 'Bosch®'),
+    (re.compile(r'^XPH|^XFD|^XWT|^XDT|^BO|^GA', re.I), 'Makita®'),
+    (re.compile(r'^3M|^7100|^3MABR', re.I), '3M'),
+    (re.compile(r'^DB3|^DCB5.*ASTS', re.I), 'Diablo'),
+    (re.compile(r'^5B-|^9A-|^MIR|^6A-|^8A-', re.I), 'Mirka'),
+]
+
+
+def _resolve_brand_from_mpn(mpn: str) -> str:
+    """Last-resort brand lookup from MPN prefix pattern."""
+    for pat, brand in MPN_BRAND_PREFIXES:
+        if pat.match(mpn):
+            return brand
+    return ""
+
+
 # ── Taxonomy / Classification ─────────────────────────────────────────────────
 
-# Keyword → (Dept, Class, Fine, Classpath)
-TAXONOMY_RULES: list[tuple[re.Pattern, tuple[str, str, str, str]]] = [
+# Keyword → (display_dept, display_class, display_fine, full_dept, classpath)
+# display_dept/class/fine = short PS Delivery Format names for Dept/Class/Fine columns
+# full_dept used only for Classpath construction
+TAXONOMY_RULES: list[tuple[re.Pattern, tuple[str, str, str, str, str]]] = [
     # Flap discs
     (re.compile(r'\bflap disc\b', re.I),
-     ("Abrasives & Surface Preparation", "Cutting & Grinding", "Flap Discs",
+     ("Abrasives", "Cutting & Grinding", "Flap Discs",
+      "Abrasives & Surface Preparation",
       "Abrasives & Surface Preparation>Cutting & Grinding>Flap Discs")),
     # Angle grinders
     (re.compile(r'\bangle grinder\b', re.I),
      ("Tools & Equipment", "Power Tools", "Angle Grinders",
+      "Tools & Equipment",
       "Tools & Equipment>Power Tools>Angle Grinders")),
     # Grinding / cut-off discs
     (re.compile(r'\b(cut.?off disc|grinding wheel|cut and grind|grinding disc|grind disc)\b', re.I),
-     ("Abrasives & Surface Preparation", "Cutting & Grinding", "Cut-Off & Grinding Discs",
+     ("Abrasives", "Cutting & Grinding", "Cut-Off & Grinding Discs",
+      "Abrasives & Surface Preparation",
       "Abrasives & Surface Preparation>Cutting & Grinding>Cut-Off & Grinding Discs")),
     # Generic abrasives
     (re.compile(r'\b(sanding belt|sanding disc|sanding sponge|abrasive|abranet|cubitron|hiolit|stikit)\b', re.I),
-     ("Abrasives & Surface Preparation", "Abrasives", "Sanding Belts & Discs",
+     ("Abrasives", "Abrasives", "Sanding Belts & Discs",
+      "Abrasives & Surface Preparation",
       "Abrasives & Surface Preparation>Abrasives>Sanding Belts & Discs")),
     # Dishwashers
     (re.compile(r'\bdishwasher\b', re.I),
-     ("Appliances & Consumer Electronics", "Kitchen Appliances", "Built-In Dishwashers",
+     ("Appliances", "Large Appliances", "Dishwashers",
+      "Appliances & Consumer Electronics",
       "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers")),
     # Dryers
     (re.compile(r'\b(electric dryer|gas dryer|elect dryer)\b', re.I),
-     ("Appliances & Consumer Electronics", "Laundry Appliances", "Clothes Dryers",
+     ("Appliances", "Large Appliances", "Clothes Dryers",
+      "Appliances & Consumer Electronics",
       "Appliances & Consumer Electronics>Laundry Appliances>Clothes Dryers")),
     # Washers
     (re.compile(r'\b(washer|laundry center)\b', re.I),
-     ("Appliances & Consumer Electronics", "Laundry Appliances", "Clothes Washers",
+     ("Appliances", "Large Appliances", "Clothes Washers",
+      "Appliances & Consumer Electronics",
       "Appliances & Consumer Electronics>Laundry Appliances>Clothes Washers")),
     # Decking
     (re.compile(r'\b(decking|deck board|pvc decking)\b', re.I),
      ("Building Materials", "Decking & Railing", "Decking Boards",
+      "Building Materials",
       "Building Materials>Decking & Railing>Decking Boards")),
     # Railing
     (re.compile(r'\b(rail kit|railing|rail panel|baluster|stair rail|horiz rail)\b', re.I),
      ("Building Materials", "Decking & Railing", "Railing Systems",
+      "Building Materials",
       "Building Materials>Decking & Railing>Railing Systems")),
     # Fascia
     (re.compile(r'\bfascia\b', re.I),
      ("Building Materials", "Decking & Railing", "Fascia Boards",
+      "Building Materials",
       "Building Materials>Decking & Railing>Fascia Boards")),
     # Siding
     (re.compile(r'\b(siding|lap siding|sdg|smartside|hardieplank|hardipanel)\b', re.I),
      ("Building Materials", "Exterior Siding", "Lap & Panel Siding",
+      "Building Materials",
       "Building Materials>Exterior Siding>Lap & Panel Siding")),
     # Tape & adhesives
     (re.compile(r'\b(tape|elect tape|vinyl tape)\b', re.I),
      ("Electrical & Lighting", "Electrical Supplies", "Electrical Tape",
+      "Electrical & Lighting",
       "Electrical & Lighting>Electrical Supplies>Electrical Tape")),
     # Drywall
     (re.compile(r'\b(drywall|easi.?lite|firelite|gypsum)\b', re.I),
      ("Building Materials", "Drywall & Insulation", "Drywall Panels",
+      "Building Materials",
       "Building Materials>Drywall & Insulation>Drywall Panels")),
     # Roofing
     (re.compile(r'\b(shingle|ice guard|eaveguard|roofing)\b', re.I),
      ("Building Materials", "Roofing", "Roofing Materials",
+      "Building Materials",
       "Building Materials>Roofing>Roofing Materials")),
     # Skylights
     (re.compile(r'\b(skylight|skylt)\b', re.I),
      ("Building Materials", "Windows & Skylights", "Skylights",
+      "Building Materials",
       "Building Materials>Windows & Skylights>Skylights")),
     # Windows & Doors
     (re.compile(r'\b(window|door|patio dr|gliding patio)\b', re.I),
      ("Building Materials", "Windows & Doors", "Sliding Patio Doors",
+      "Building Materials",
       "Building Materials>Windows & Doors>Sliding Patio Doors")),
     # Metal roofing panels
     (re.compile(r'\b(premier rib|metal panel|rib xl)\b', re.I),
      ("Building Materials", "Roofing", "Metal Roofing Panels",
+      "Building Materials",
       "Building Materials>Roofing>Metal Roofing Panels")),
     # Heater / appliance parts
     (re.compile(r'\bheater kit\b', re.I),
-     ("Appliances & Consumer Electronics", "Appliance Parts", "Heating Elements",
+     ("Appliances", "Appliance Parts", "Heating Elements",
+      "Appliances & Consumer Electronics",
       "Appliances & Consumer Electronics>Appliance Parts>Heating Elements")),
     # Mortar
     (re.compile(r'\bmortar\b', re.I),
      ("Building Materials", "Masonry", "Mortar & Grout",
+      "Building Materials",
       "Building Materials>Masonry>Mortar & Grout")),
     # Kneeling pad
     (re.compile(r'\bkneeling pad\b', re.I),
      ("Tools & Equipment", "Hand Tools", "Accessories",
+      "Tools & Equipment",
       "Tools & Equipment>Hand Tools>Accessories")),
     # Post / sleeve
     (re.compile(r'\b(post sleeve|post trim|post cap|blank post)\b', re.I),
      ("Building Materials", "Decking & Railing", "Post Sleeves & Caps",
+      "Building Materials",
       "Building Materials>Decking & Railing>Post Sleeves & Caps")),
     # Floor / subfloor
     (re.compile(r'\b(subfloor|osb|t&g|tongue.?and.?groove)\b', re.I),
      ("Building Materials", "Flooring", "Subfloor Panels",
+      "Building Materials",
       "Building Materials>Flooring>Subfloor Panels")),
     # Attic access door
     (re.compile(r'\battic access\b', re.I),
      ("Building Materials", "Doors", "Attic Access Doors",
+      "Building Materials",
       "Building Materials>Doors>Attic Access Doors")),
     # Threshold
     (re.compile(r'\bthreshold\b', re.I),
      ("Building Materials", "Doors", "Door Thresholds",
+      "Building Materials",
       "Building Materials>Doors>Door Thresholds")),
     # Lumber / wood
     (re.compile(r'\b(doug fir|lumber|wood|smooth 1s2e)\b', re.I),
      ("Building Materials", "Lumber & Composites", "Dimensional Lumber",
+      "Building Materials",
       "Building Materials>Lumber & Composites>Dimensional Lumber")),
     # Rainscreen / wrap
     (re.compile(r'\b(rainscreen|zip wrap)\b', re.I),
      ("Building Materials", "Moisture & Weather Barriers", "Rainscreens",
+      "Building Materials",
       "Building Materials>Moisture & Weather Barriers>Rainscreens")),
     # Deck joist tape
     (re.compile(r'\bjoist tape\b', re.I),
      ("Building Materials", "Decking & Railing", "Deck Tape & Accessories",
+      "Building Materials",
       "Building Materials>Decking & Railing>Deck Tape & Accessories")),
     # Sander / power tools
     (re.compile(r'\b(sander|belt and spindle|oscillating edge)\b', re.I),
      ("Tools & Equipment", "Power Tools", "Sanders",
+      "Tools & Equipment",
       "Tools & Equipment>Power Tools>Sanders")),
     # Tire pressure gauge
     (re.compile(r'\btire pressure\b', re.I),
      ("Automotive & Transportation", "Automotive Tools", "Tire Gauges",
+      "Automotive & Transportation",
       "Automotive & Transportation>Automotive Tools>Tire Gauges")),
     # ADA rail
     (re.compile(r'\bada\b', re.I),
      ("Building Materials", "Decking & Railing", "ADA Handrails",
+      "Building Materials",
       "Building Materials>Decking & Railing>ADA Handrails")),
 ]
 
 FALLBACK_TAXONOMY = (
-    "General Industrial", "General Products", "Uncategorized",
+    "General Industrial", "General Products", "Uncategorized", "General Industrial",
     "General Industrial>General Products>Uncategorized"
 )
 
 
-def _classify(desc: str) -> tuple[str, str, str, str]:
-    """Return (Dept, Class, Fine, Classpath) by matching Part_Desc."""
+def _classify(desc: str) -> tuple[str, str, str, str, str]:
+    """Return (display_dept, display_class, display_fine, full_dept, classpath)."""
     for pattern, taxonomy in TAXONOMY_RULES:
         if pattern.search(desc):
             return taxonomy
@@ -479,13 +542,23 @@ def enrich_unilog_row(row: dict) -> dict:
     mfr_name = _normalise_manufacturer(raw_manuf)
     brand    = _normalise_brand(e1_brand, ul_brand, dib_brand, mfr_name, part_desc)
 
-    # Classification
-    dept, cls, fine, classpath = _classify(part_desc)
+    # Classification — 5-tuple: display_dept, display_class, display_fine, full_dept, classpath
+    dept, cls, fine, _full_dept, classpath = _classify(part_desc)
 
     # Attribute extraction
     attrs = _extract_attributes(part_desc)
     series = next((a["value"] for a in attrs if a["label"] == "Series"), "")
     item_type = _infer_item_type(part_desc, fine)
+
+    # Brand: try brand fields first, then Part_Desc scan, then MPN prefix lookup
+    mfr_name = _normalise_manufacturer(raw_manuf)
+    brand    = _normalise_brand(e1_brand, ul_brand, dib_brand, mfr_name, part_desc)
+    # If brand still resolves to the distributor/mfr name with no direct brand signal,
+    # try MPN prefix as last resort
+    if not brand or brand == mfr_name:
+        mpn_brand = _resolve_brand_from_mpn(mpn)
+        if mpn_brand:
+            brand = mpn_brand
 
     # Confidence scoring
     has_brand      = bool(brand and brand != mfr_name)
@@ -554,20 +627,51 @@ def enrich_unilog_row(row: dict) -> dict:
     for i in range(1, 21):
         out[f"ITEM_FEATURES_{i}"] = ""
 
-    # Populate first N features from extracted attrs
-    for i, a in enumerate(attrs[:10], 1):
-        feat = f"{a['label']}: {a['value']}"
-        if a["uom"]:
-            feat += f" {a['uom']}"
-        out[f"ITEM_FEATURES_{i}"] = feat
+    # Item features: short consumer-facing bullets (not Label:Value pairs)
+    # Priority: extracted attribute values as standalone bullets
+    feature_bullets = []
+    for a in attrs:
+        val = a["value"]
+        uom = a["uom"]
+        label = a["label"]
+        # Format: "47 dBA", "120 V", "5-Wash Cycle", "Stainless Steel"
+        if uom:
+            feature_bullets.append(f"{val} {uom}")
+        elif label in ("Series", "Material", "Color"):
+            feature_bullets.append(val)
+        elif label == "Number of Wash Cycles":
+            feature_bullets.append(f"{val}-Wash Cycle")
+        elif label == "Mounting Type":
+            feature_bullets.append(f"{val} Mounting")
+        else:
+            feature_bullets.append(val)
+    for i, bullet in enumerate(feature_bullets[:20], 1):
+        out[f"ITEM_FEATURES_{i}"] = bullet
 
-    # ── Group 6: Extra fields ──────────────────────────────────────────────
-    out["With"]               = ""
-    out["Standard/Approvals"] = ""
+    # 'With' field: extract "With X" features from Part_Desc
+    with_match = re.search(r'\bwith\b\s+([\w\s™®]+?)(?:\s*[,;.]|$)', part_desc, re.I)
+    out["With"]               = f"With {with_match.group(1).strip()}" if with_match else ""
+
+    # Standard/Approvals: detect cert/standard mentions in Part_Desc
+    approval_patterns = [
+        (r'\bENERGY\s*STAR\b', 'ENERGY STAR Certified'),
+        (r'\bUL\s*Listed\b', 'UL Listed'), (r'\bcUL\b', 'cUL Listed'),
+        (r'\bNSF\b', 'NSF Certified'), (r'\bCE\b', 'CE Marked'),
+        (r'\bISO\s*\d+', lambda m: m.group(0)),
+        (r'\bRoHS\b', 'RoHS Compliant'), (r'\bFCC\b', 'FCC Certified'),
+    ]
+    approvals = []
+    for pat, label in approval_patterns:
+        if callable(label):
+            m = re.search(pat, part_desc, re.I)
+            if m: approvals.append(label(m))
+        elif re.search(pat, part_desc, re.I):
+            approvals.append(label)
+    out["Standard/Approvals"] = "|".join(approvals)
     out["Prop 65"]            = ""
     out["Application"]        = ""
     out["Includes"]           = ""
-    out["Product Name"]       = short_desc
+    out["Product Name"]       = fine if fine and fine not in ("Uncategorized", "General Products") else item_type
 
     # ── Group 7: Attributes (50 slots × 3 cols) ────────────────────────────
     for i in range(1, 51):
