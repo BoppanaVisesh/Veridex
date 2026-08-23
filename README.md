@@ -1,279 +1,337 @@
-# Veridex — Intelligent Next-Best-Action Platform
+# Veridex — AI-Powered Product Catalog Intelligence Platform
 
-## Project Overview
-
-### What is Veridex?
-
-**Veridex** is an enterprise-grade **Agentic Decision Intelligence Platform** designed to help staffing organizations make faster, more accurate, and fully explainable business decisions.
-
-Modern staffing firms generate enormous amounts of operational data across Applicant Tracking Systems (ATS), Customer Relationship Management (CRM) platforms, emails, meeting notes, compliance systems, market intelligence, and historical hiring records. Although these systems capture valuable information, they operate independently, forcing recruiters and account managers to manually gather evidence before making critical decisions.
-
-This fragmented workflow results in delayed responses, inconsistent decision-making, compliance risks, missed revenue opportunities, and excessive administrative effort.
-
-Veridex addresses this challenge by acting as an intelligent **Next-Best-Action (NBA) co-pilot**. Instead of merely presenting analytics or dashboards, it continuously monitors operational signals, reasons over evidence using a coordinated network of AI agents, evaluates multiple business objectives simultaneously, and recommends the single most appropriate action while providing complete transparency into *why* that recommendation was made.
-
-Unlike conventional recommendation systems that rely solely on predictive models, Veridex follows a structured **agentic decision pipeline**. Every recommendation passes through planning, evidence gathering, readiness validation, multi-objective evaluation, optimization, explanation, human approval, and continuous learning before becoming an actionable recommendation.
-
----
-
-### The Business Problem
-
-Recruiters and account managers routinely make dozens of high-impact decisions every day, including:
-
-- Which candidate should be submitted for a new role?
-- Which contractor is likely to accept a competing offer?
-- Which client account requires immediate attention?
-- Which contracts should be renewed, converted, or released?
-- Which compliance issue could become a legal risk?
-- Which idle consultants should be proactively marketed?
-- When should pricing or bill rates be renegotiated?
-- Which client is ready for cross-selling or expansion?
-
-These decisions require combining information scattered across multiple disconnected systems, making the process slow, inconsistent, and difficult to audit.
-
-Traditional staffing platforms provide data but rarely provide actionable intelligence. Recruiters are still responsible for interpreting the information, resolving conflicting evidence, assessing business trade-offs, and justifying their decisions.
-
-Veridex transforms this workflow by converting fragmented operational data into explainable, evidence-driven recommendations that can be reviewed, approved, or modified by human decision-makers.
-
----
-
-## System Architecture
+> **Unilog Hackathon 2026** — Transform raw supplier data into the full 252-column Unilog Delivery Format using a multi-agent, evidence-first decision intelligence pipeline.
 
 <p align="center">
   <img src="sentinel_architecture.jpeg" alt="Veridex System Architecture" width="1000"/>
 </p>
 
 <p align="center">
-  <em>Figure 1. Veridex Multi-Agent Decision Intelligence Architecture</em>
+  <em>Figure 1. Veridex Multi-Agent Catalog Intelligence Architecture</em>
 </p>
 
 ---
 
-### How Veridex Works
+## 🎯 Problem Statement
 
-For every incoming business request, Veridex executes a complete decision intelligence pipeline:
+Industrial distributors manage **fragmented product data** across supplier feeds, spec sheets, technical documents, and digital assets. The gap:
 
-1. **Planner Agent** identifies the decision category and calculates business urgency.
-2. **Evidence Agents** collect only the information required from relevant enterprise systems.
-3. **Decision Readiness Evaluator (DRE)** determines whether sufficient evidence exists, working in tandem with the **Contradiction Detector** (which scans for conflicting signals and dynamically caps confidence to avoid bad decisions) and the **Missing-Info Detector** (which spots structural checklist gaps).
-4. **Value of Information (VoI)** analysis identifies missing high-value information and dynamically gathers only the most impactful evidence.
-5. **Specialized Business Bidders** independently evaluate the available actions from different organizational perspectives including Revenue, Risk, Operations, Finance, Customer Success, and Compliance.
-6. **Optimizer** aggregates these competing objectives into the optimal recommendation while enforcing hard business constraints such as compliance vetoes.
-7. **Explanation Engine** generates confidence scores, reasoning, counterfactuals, historical precedents, and alternative action analysis.
-8. **Human-in-the-Loop (HITL)** allows recruiters or managers to accept, modify, reject, or challenge recommendations before execution.
-9. **Learning Loop** continuously improves future recommendations using outcome feedback, bidder calibration, and adaptive weight updates.
+| Input (6 columns) | Output Required (252 columns) |
+|---|---|
+| `Mfg_Part_Num` | Brand Name, Invoice Desc, Mobile Desc, Short Desc, Long Desc |
+| `Part_Desc` | DEPT / CLASS / FINE taxonomy (3-level hierarchy) |
+| `E1_Brand` | Up to 20 structured attributes (Grit, Voltage, Diameter...) |
+| `Unilog_Brand` | Item Features, Series, Material, Color |
+| `DIB_Brand` | Compliance flags, certification status |
+| `Part_Manuf` | Full Classpath + confidence score |
 
-This architecture ensures that every recommendation is transparent, auditable, and continuously improving rather than functioning as a static prediction engine.
-
----
-
-### Core Capabilities
-
-Veridex currently supports **nine recurring staffing decision archetypes**, covering the majority of operational decisions made within staffing organizations:
-
-
-### 9 Decision Types Covered
-
-| ID | Decision | Trigger |
-|---|---|---|
-| **D1** | Fulfillment Risk | Job order aging without quality submittals |
-| **D2** | Candidate Shortlist | Multi-criteria ranking for open role |
-| **D3** | Flight Risk | Competing offer or disengagement signals |
-| **D4** | Contract Renewal | End-of-term action (renew / extend / convert) |
-| **D5** | Bench Monetization | Idle candidate needs proactive marketing |
-| **D6** | Account Health | Client reducing spend or showing churn signals |
-| **D7** | Compliance Exposure | Work auth / cert expiry / background check gap |
-| **D8** | Rate Negotiation | Bill-rate margin decision |
-| **D9** | Cross-sell / Upsell | Client ready for expanded staffing services |
-
-Each decision type has its own evidence requirements, optimization strategy, business objectives, learning behavior, and success metrics.
+At scale: thousands of SKUs, multiple suppliers, multiple sales channels — wrong specs cause buyer returns, regulatory fines, and marketplace delisting.
 
 ---
 
-### Why Veridex is Different
+## 🏗️ Architecture
 
-Most Next-Best-Action platforms generate recommendations using predictive models trained on historical data. Veridex goes beyond prediction by introducing an **Agentic Decision Intelligence Architecture** that actively reasons before recommending.
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (SPA)                           │
+│  8 Pages: Command Center → Run Scenario → Mission Control →     │
+│  Investigation → Human Review → Metrics → Catalog → Unilog      │
+└────────────────────┬────────────────────────────────────────────┘
+                     │ HTTP / SSE
+┌────────────────────▼────────────────────────────────────────────┐
+│                   FASTAPI BACKEND                                │
+│                                                                 │
+│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
+│  │ Planner │→ │ Evidence │→ │   DRE    │→ │ Bidding Layer  │  │
+│  │  Agent  │  │  Agents  │  │ Evaluator│  │ (6 Bidders)    │  │
+│  └─────────┘  └──────────┘  └──────────┘  └───────┬────────┘  │
+│                                                    │            │
+│  ┌─────────────┐  ┌───────────────┐  ┌────────────▼────────┐  │
+│  │  Learning   │← │  Explanation  │← │    Optimizer         │  │
+│  │  Service    │  │    Engine     │  │  (Slot Composition)  │  │
+│  └─────────────┘  └───────────────┘  └─────────────────────┘  │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │           Catalog Intelligence Module                      │  │
+│  │  Ingestion → Cleaning → Validation → Enrichment → Export  │  │
+│  │  Unilog Pipeline: 6 cols → 255-col Delivery Format        │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  SQLite Database (decisions, outcomes, products, weights)       │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-Key architectural innovations include:
-
-- **Value-of-Information-driven evidence collection** instead of gathering every available data point.
-- **Dynamic agent creation** for retrieving only high-impact missing information.
-- **Decision Readiness Evaluation (DRE)** to ensure recommendations are never produced with insufficient evidence.
-- **Multi-objective bidding** that balances competing business priorities rather than optimizing a single metric.
-- **Compliance as a deterministic hard veto**, ensuring regulatory constraints cannot be overridden by business incentives.
-- **Counterfactual explanations** that show what would change the recommendation.
-- **Precedent retrieval** using similar historical decisions.
-- **Continuous learning** through bidder calibration, confidence evaluation, influence tracking, and outcome feedback.
-
-These capabilities transform Veridex from a recommendation engine into a trustworthy AI decision partner capable of supporting complex enterprise operations.
+**Stack:** Python 3.13 · FastAPI · SQLite · Vanilla JS SPA · Pandas · Google Gemini Flash (optional)
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
-# 1. Install dependencies (5 packages only)
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Set up LLM API Key (Optional)
-# Create a .env file in the root directory:
-# GEMINI_API_KEY=your_gemini_api_key_here
-# Note: Built with graceful degradation: if no API key is present, Veridex automatically falls back to deterministic high-fidelity simulated responses, ensuring the platform never fails.
+# 2. (Optional) Set Gemini API key for LLM-enhanced enrichment
+# Create .env in root:  GEMINI_API_KEY=your_key_here
+# Without key: platform auto-falls back to deterministic rule-based enrichment
 
 # 3. Start the platform
 python -m backend.main
 
 # 4. Open the dashboard
-# http://localhost:8000
+http://localhost:8000
 ```
 
-The server auto-seeds 225 historical outcomes across all 9 decision types on first boot. No database setup required — SQLite is created automatically.
+Server auto-seeds **225 historical outcomes** across all 9 decision types on first boot. No database setup — SQLite is created automatically.
 
 ---
 
-### UI Views
-- **Command Center** — Urgency-sorted decision queue, live agent health indicators, and core HITL statistics.
-- **Run Scenario** — Interface to trigger any of the 9 pre-built decision scenarios or submit custom decision requests.
-- **Mission Control** — High-level pipeline stage tracker, live SVG agent network visualizer, and SSE progress log console.
-- **Investigation** — Deep-dive audit: recommendation, bidding details, evidence timeline, counterfactuals, audit trail, and database rollback metrics.
-- **Human Review** — HITL checkpoint response panel (Accept/Edit/Reject, clarify questions, and on-demand "Why Not X?" queries).
-- **Platform Metrics** — Live business KPIs, bidder influence budgets, Brier score calibrations, and EMA weight drift history.
+## 📄 8 Navigation Pages
+
+| # | Page | Purpose |
+|---|---|---|
+| **1** | Command Center | KPI tiles, urgency-sorted decision queue, agent health |
+| **2** | Run Scenario | Trigger D1–D9 pipelines, animated 8-stage progress |
+| **3** | Mission Control | Live stage tracker, agent network SVG, DRE console |
+| **4** | Investigation | Radar chart, What-If simulator, evidence timeline, counterfactuals, audit trail |
+| **5** | Human Review | Accept / Edit / Reject HITL checkpoint, "Why Not X?" instant query |
+| **6** | Platform Metrics | Brier scores, EMA weight drift, influence budgets, business KPIs |
+| **7** | Catalog Intelligence | Product grid, enrich/validate, explain-field, CSV/PDF/XLSX upload |
+| **8** | Unilog Intelligence | 6→255 col transformation, preview cards, export XLSX/CSV at scale |
 
 ---
 
-## Architecture
+## 🤖 9 Evidence Agents
+
+| Agent | Catalog Domain Focus |
+|---|---|
+| Catalog Database Agent | Product status, completeness %, category, age |
+| Supplier Ingest Agent | Supplier feed signals, spec conflict notifications |
+| Channel Partner Agent | Channel API alignment, taxonomy approval signals |
+| Validation Engine Agent | Spec validation status, flagged fields, days since audit |
+| Enrichment & Taxonomy Agent | Category value, taxonomy confidence, enrichment yield |
+| Marketplace Feed Agent | Comparable products, price benchmarks, feed trends |
+| Compliance Registry Agent | ISO/UL/CE cert status — **deterministic, no LLM** |
+| Precedent Agent | Similar past decisions (semantic similarity) |
+| Catalog Evidence Agent | Full catalog DB lookup for all D-type fact types |
+
+---
+
+## ⚖️ 6 Bidders — Multi-Objective Auction
+
+| Bidder | Weight | Focus | Veto |
+|---|---|---|---|
+| **Revenue** | 25% | Listing velocity, GMV from unlisted products | No |
+| **Risk** | 20% | Spec hallucination, misclassification, RMA returns | No |
+| **CustomerSuccess** | 15% | Buyer clarity, fewer disputes, accurate specs | No |
+| **Finance** | 15% | Working capital drag, enrichment cost vs manual | No |
+| **Compliance** | 15% | ISO/UL/CE certs — **hard veto, never outbid** | **YES** |
+| **Ops** | 10% | Pipeline throughput, automation feasibility | No |
+
+> Weights sum to 1.00. EMA learning loop adjusts weights after each outcome. Compliance is exempt from the influence mechanic.
+
+---
+
+## 🗂️ 9 Decision Types — All Industrial Product Data
+
+| ID | Decision | Product | Urgency |
+|---|---|---|---|
+| **D1** | Listing Readiness Risk | ProPump 5000 — 45% complete, 14 days unlisted | 0.88 |
+| **D2** | Category/Channel Placement | Apex Turbine TX-1 — taxonomy + Amazon B2B | 0.65 |
+| **D3** | Data Decay Risk | HydroFlow HF-2 — conflicting voltage (110V vs 220V) | 0.85 |
+| **D4** | Re-validation Cycle | SolarPower SP-200 — 92 days since audit | 0.60 |
+| **D5** | Incomplete Listing Promotion | EcoFlow EF-300 — 35% complete, PDF available | 0.75 |
+| **D6** | Source Reliability Health | Global Pump Supplies Feed — 42% validation ratio | 0.78 |
+| **D7** | Certification/Compliance Gap | Industrial HD Pump — "Heavy Duty" ≠ UL-778 | 0.95 |
+| **D8** | Publish-Confidence Threshold | Titan Valve V-10 — max_pressure_psi at 0.94 confidence | 0.55 |
+| **D9** | Catalog Expansion Opportunity | ThermoCool TC-100 — 98% complete, multi-channel ready | 0.50 |
+
+---
+
+## 🔬 Unilog Enrichment Pipeline
 
 ```
-DecisionRequest
-    │
-    ▼
-[Planner Agent]          — Classifies decision type, computes urgency score
-    │
-    ▼
-[Evidence Agents]        — Parallel queries across 8 sources:
-                           CRM/ATS · Email Sentiment · Meeting Transcripts · Market Data ·
-                           Compliance Registry · Precedent Agent · Candidate Activity · Knowledge Base
-    │
-    ▼
-[Quality Detectors]      — Contradiction & Missing-Info Detectors:
-                           Resolves data conflicts and caps confidence values before evaluation
-    │
-    ▼
-[DRE — Dynamic Readiness Evaluator]
-    │  • VoI-ranks evidence gaps (not all evidence — only what matters)
-    │  • Spins up DynamicAgentCreator for critical missing facts
-    │  • Output: READY / CAVEATS / BLOCKED
-    ▼
-[6 Parallel Bidders]     — Each independently scores the decision:
-    │  Revenue · Risk · CustomerSuccess · Finance · Compliance · Ops
-    │  ComplianceBidder = deterministic hard veto (no weight game)
-    ▼
-[Optimizer]
-    │  • Weighted aggregate using influence-adjusted weights:
-    │    Σ(score × effective_weight) / Σ(effective_weight)
-    │    where effective_weight = base_weight × bidder_influence
-    │  • score < 0.38 → NULL_ACTION with full rationale
-    │  • Compliance veto short-circuits scoring entirely
-    ▼
-[Explanation Engine]
-    │  • Rule-based counterfactuals ("what fact change would flip the decision?")
-    │  • Precedent retrieval (similar past cases + outcomes)
-    │  • Losing bids summary ("why not alternative X?")
-    ▼
-[HITL Checkpoints]
-    │  • Clarification questions (pre-decision gap fill)
-    │  • Human: Accept / Edit / Reject
-    │  • On-demand: "Why not X?" counterfactual
-    ▼
-[Learning Loop]          — EMA weight updates per (bidder, decision_type)
-                            Brier score calibration · Influence ledger
-                            Outcome recording → improves future recommendations
+ Mfg_Part_Num + Part_Desc + E1_Brand + Unilog_Brand + DIB_Brand + Part_Manuf
+                                    │
+             ┌──────────────────────▼──────────────────────────┐
+             │  1. Brand Normalization                          │
+             │     Canonical form: "3M", "Milwaukee", "Mirka"  │
+             │  2. Manufacturer Normalization                   │
+             │     "Milwaukee Electric Tool Corp" → "Milwaukee" │
+             │  3. Taxonomy Classification (3-level hierarchy)  │
+             │     "FLAP DISC TYPE 27" → Abrasives & Surface    │
+             │     Preparation > Cutting & Grinding > Flap Discs│
+             │  4. Attribute Extraction (regex, 15 patterns)    │
+             │     Grit: 60 | Diameter: 4-1/2 in | Type: 27    │
+             │  5. Description Generation (5 variants)         │
+             │     Invoice · Mobile · Short · Long · Retail     │
+             │  6. Confidence Scoring                          │
+             │     0.40 base + classified (+0.25) + attrs       │
+             │     (+0.15) + known brand (+0.20) → max 0.95     │
+             └──────────────────────┬──────────────────────────┘
+                                    │
+             ┌──────────────────────▼──────────────────────────┐
+             │  255-column Delivery Format output               │
+             │  + _confidence score + _needs_review flag        │
+             └─────────────────────────────────────────────────┘
 ```
 
-**Persistence**: SQLite with `decision_log`, `outcomes`, `weight_snapshots`, `influence_ledger` tables.
+**Gemini LLM mode** (when `GEMINI_API_KEY` is set): fills empty/low-confidence fields using structured prompt with product context.
 
 ---
 
-## Key Technical Differentiators
+## 🔒 Key Design Guarantees
 
-### 1. VoI-Ranked Evidence Gathering
-The DRE doesn't gather all evidence — it ranks gaps by **Value of Information** and only dispatches dynamic agents for high-VoI missing facts. Most NBA systems gather everything indiscriminately.
+### Anti-Hallucination
+- Compliance Agent is **100% deterministic** — no LLM, structured registry lookup only
+- Compliance Bidder has **hard veto** — cannot be outbid regardless of other scores
+- Explanation Engine can only cite `evidence_ref` values **already in state** — no fabrication
+- Unilog enrichment is **rule-based by default** — no LLM inference of certification data
 
-### 2. Compliance as a Hard Veto, Not a Score
-The ComplianceBidder operates outside the weighted scoring game. It has architectural first-strike authority — a work auth expiry blocks the decision regardless of all other bidder scores. This is a control layer, not just a high-weight participant.
+### Full Traceability
+- Every fact: `source_agent` · `confidence` · `timestamp` · `evidence_ref`
+- Every recommendation: bidder scores · counterfactuals · contradictions · precedent · execution log
+- Every outcome recorded for learning loop — full audit trail in SQLite
 
-### 3. Per-Decision-Type Learning
-EMA weight updates are computed per `(bidder, decision_type)` pair. The system independently learns that **Revenue** matters more for D4 (renewal) and **Risk** matters more for D3 (flight risk). Bidder weights drift separately for each context.
+### Human-in-the-Loop
+- All decisions require explicit **Accept / Edit / Reject** before execution
+- **"Why Not X?"** answers instantly from pre-computed bid state (zero extra LLM calls)
+- **What-If simulator** patches numeric facts and recomputes scores without re-running agents
 
-### 4. Explicit NULL_ACTION
-When aggregate confidence falls below the threshold (`0.38`), Veridex explicitly recommends "take no action now" with a full rationale — preventing premature interventions. D5 (Bench Monetization in a saturated market) correctly triggers this.
-
-### 5. Counterfactual + Precedent Explanations
-Every recommendation includes:
-- **Counterfactuals**: What single change would flip the recommendation?
-- **Precedent**: What similar past decisions were made, and what happened?
-- **Why Not X?**: On-demand alternative scoring against any recruiter-proposed action
-
-### 6. Urgency-Sorted HITL Queue
-The decision queue sorts by urgency score (SLA risk), not arrival time. A D1 order breaching SLA in 2 days surfaces above a D9 cross-sell, even if submitted later.
+### Continuous Learning
+- **EMA** adjusts bidder weights per `(bidder, decision_type)` pair after each outcome
+- **Brier Score** calibrates confidence per decision type
+- **Influence Budget** tracks win/loss per bidder — prevents single-bidder dominance
+- Warm-started with **225 historical outcomes** across D1–D9
 
 ---
 
-## API Endpoints
+## 🧪 Test Results
+
+```bash
+python test_e2e.py      # Backend E2E — no server needed
+python test_pages.py    # API smoke test — server must be running
+```
+
+| Test Suite | Result |
+|---|---|
+| Backend E2E (72 checks) | ✅ 72/72 PASS |
+| API smoke test (31 endpoints) | ✅ 31/31 PASS |
+
+---
+
+## 📁 Project Structure
+
+```
+veridex/
+├── backend/
+│   ├── api.py                       # Main FastAPI app (50+ endpoints)
+│   ├── main.py                      # Uvicorn entrypoint
+│   ├── models.py                    # Pydantic models
+│   ├── config.py                    # All tunable parameters
+│   ├── database.py                  # SQLite ORM
+│   ├── seed_data.py                 # D1–D9 scenarios + 225 historical outcomes
+│   ├── dre.py                       # Decision Readiness Evaluator + Detectors
+│   ├── optimizer.py                 # Multi-Objective Optimizer
+│   ├── explanation_engine.py        # Explanation + Counterfactual Engine
+│   ├── learning_service.py          # EMA weight updates + Brier calibration
+│   ├── agents/
+│   │   ├── evidence_agents.py       # All 8 evidence agent classes
+│   │   └── planner_agent.py         # Decision planner
+│   ├── bidders/
+│   │   └── bidders.py               # 6 bidder classes + run_all_bidders()
+│   └── catalog/
+│       ├── catalog_api.py           # 15 catalog REST endpoints
+│       ├── catalog_models.py        # Product, ProductField models
+│       ├── ingestion.py             # CSV/XLSX/PDF/HTML parser
+│       ├── cleaning.py              # Raw record normalization
+│       ├── catalog_validation.py    # Plausibility + range checks
+│       ├── catalog_enrichment.py    # 3-tier enrichment pipeline
+│       ├── catalog_explanation.py   # Field-level provenance
+│       └── unilog_enrichment.py     # 6→255 col Unilog transformation
+├── frontend/
+│   ├── index.html                   # SPA shell (8 pages)
+│   └── js/
+│       ├── app.js                   # Router + nav
+│       ├── constants.js             # D-types, agents, bidder metadata
+│       ├── helpers.js               # SVG visualizations, shared renderers
+│       └── pages/                   # One JS file per page (8 total)
+├── test_e2e.py                      # Backend E2E (72 checks)
+├── test_pages.py                    # API smoke test (31 endpoints)
+├── requirements.txt
+└── Unihack_ Sample Dataset - Input.csv
+```
+
+---
+
+## 🌐 API Endpoints
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/api/scenarios` | `GET` | List all 9 pre-built decision scenarios |
-| `/api/decisions/run-scenario` | `POST` | Run a scenario through the full pipeline |
-| `/api/decisions` | `POST` | Submit a custom decision request |
-| `/api/decisions` | `GET` | List all active and historical decisions (urgency-sorted) |
-| `/api/decisions/{decision_id}` | `GET` | Full decision detail, recommended actions, and outcome metadata |
-| `/api/decisions/{decision_id}/progress` | `GET` | Retrieve pipeline execution progress messages |
-| `/api/decisions/{decision_id}/stream` | `GET` | SSE real-time pipeline progress streaming |
-| `/api/trace/{decision_id}` | `GET` | Retrieve full execution trace of events |
-| `/api/trace/{decision_id}/stream` | `GET` | SSE real-time execution trace streaming |
-| `/api/decisions/{decision_id}/respond` | `POST` | HITL Checkpoint 2: Accept, Edit, or Reject a recommendation |
-| `/api/decisions/{decision_id}/clarify` | `POST` | HITL Checkpoint 1: Answer a clarification question |
-| `/api/decisions/{decision_id}/why-not` | `POST` | "Why not X?" counterfactual analysis (cached, zero LLM overhead) |
-| `/api/decisions/{decision_id}/whatif` | `POST` | Run What-If simulation by patching fact values |
-| `/api/outcomes/{decision_id}` | `POST` | Record downstream result (was_correct, result text) for learning loop |
-| `/api/metrics` | `GET` | Combined platform metrics (influence budgets, weight history, calibration) |
-| `/api/metrics/influence` | `GET` | Fetch current active influence budget weights |
-| `/api/metrics/calibration` | `GET` | Fetch current bidder Brier score calibrations |
-| `/api/metrics/weights` | `GET` | Fetch historical bidding weight drift snapshot history |
-| `/api/evaluate` | `GET` | Calculate platform evaluation metrics and business KPIs |
-| `/api/health` | `GET` | Liveness health check |
-| `/api/admin/reset` | `POST` | Reset platform: clear DB tables and wipe active in-memory states |
+| `/api/health` | GET | Liveness check |
+| `/api/scenarios` | GET | All 9 decision scenarios |
+| `/api/decisions/run-scenario` | POST | Run pipeline on a scenario |
+| `/api/decisions` | GET | List all decisions (urgency-sorted) |
+| `/api/decisions/{id}` | GET | Full decision detail + recommendation |
+| `/api/decisions/{id}/progress` | GET | Pipeline stage messages |
+| `/api/decisions/{id}/stream` | GET | SSE real-time progress |
+| `/api/trace/{id}` | GET | Full execution trace |
+| `/api/decisions/{id}/respond` | POST | HITL: Accept / Edit / Reject |
+| `/api/decisions/{id}/why-not` | POST | "Why not X?" (instant, no LLM) |
+| `/api/decisions/{id}/whatif` | POST | What-If fact simulator |
+| `/api/metrics` | GET | Platform metrics (influence, Brier, weights) |
+| `/api/evaluate` | GET | Business KPIs |
+| `/api/catalog/unilog-preview` | GET | Live 6→255 enrichment preview |
+| `/api/catalog/unilog-sample-export` | GET | Export enriched dataset (XLSX/CSV) |
+| `/api/catalog/products` | GET | Product catalog list |
+| `/api/catalog/products/{id}/enrich` | POST | Enrich product fields |
+| `/api/catalog/products/{id}/validate` | POST | Validate product fields |
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Backend Framework** | Python 3.11 · FastAPI · Uvicorn |
-| **Pipeline Engine** | Custom LangGraph-inspired state machine (`graph.py`) |
-| **LLM Provider** | Google Gemini (2.0 Flash/Pro API, cost-aware dynamic routing) |
-| **Database Persistence** | SQLite (persistent, zero-config, auto-created) |
-| **Memory Graph** | NetworkX (representing the Shared Evidence Memory Graph) |
-| **Learning & Calibration** | Custom EMA (dampened learning rate) · Brier score calibrator |
-| **Frontend UI Dashboard** | Modular Vanilla HTML/CSS/JS (no build steps, clean cream/indigo dark-mode dashboard) |
-| **Typography & Fonts** | Google Fonts (Inter) · JetBrains Mono |
+| Backend | Python 3.13 · FastAPI · Uvicorn |
+| Database | SQLite (auto-created, zero config) |
+| AI / LLM | Google Gemini 2.0 Flash (optional) |
+| Enrichment | Rule-based pipeline + Gemini fallback |
+| Data Processing | Pandas · Regex taxonomy engine |
+| Frontend | Vanilla HTML/CSS/JS (no build step) |
+| Typography | Google Fonts (Inter) · JetBrains Mono |
 
 ---
-## Project Walkthroughs
 
-- **Github Link:** [Click Here](https://github.com/Pranavipulluri/Sentinel.git)
+## 🏆 PS Requirements → Feature Mapping
+
+| Requirement | Veridex Feature | Status |
+|---|---|---|
+| Generate structured product data from limited inputs | Unilog: 6→255 cols | ✅ |
+| Improve product data quality and consistency | Validation Engine + Compliance Registry | ✅ |
+| Traceable, auditable outputs | Evidence timeline + execution log | ✅ |
+| Scale across large catalogs | Batch ingestion, SSE streaming | ✅ |
+| AI-powered enrichment | 3-tier pipeline (rule-based + Gemini) | ✅ |
+| Human oversight on decisions | HITL Review page (Accept/Edit/Reject) | ✅ |
+| Continuous improvement | EMA learning loop + Brier calibration | ✅ |
+| Supplier data quality monitoring | D6 Source Reliability Health | ✅ |
+| Certification compliance enforcement | D7 + deterministic Compliance Veto | ✅ |
+| Multi-channel syndication readiness | D9 + Channel: Amazon B2B, Grainger, Fastenal | ✅ |
+
+---
+
+## 📽️ Project Walkthroughs
+
+- **GitHub:** [BoppanaVisesh/Veridex](https://github.com/BoppanaVisesh/Veridex)
 - **Architecture Walkthrough:** [Watch Here](https://drive.google.com/file/d/1Vhca9_k1AW6r3JxJh9RNBNknJE04UvD6/view?usp=sharing)
 - **Demo Walkthrough:** [Watch Here](https://drive.google.com/file/d/1LrNWyUuFfnymBQd_UDezcF4Sd7mmdCvk/view?usp=sharing)
+
 ---
 
-##  Team
+## 👥 Team
 
 | Name | Roll Number | Section |
-|------|-------------|------|
-| **Bopanna Visesh** | 23071A6775 | CSD-B  |
-| **Pulluri Pranavi** | 23071A67B9 | CSD-B  |
-| **Palagiri Haasini** | 23071A67G6 | CSD-C  |
-
----
+|---|---|---|
+| **Boppanna Visesh** | 23071A6775 | CSD-B |
+| **Pulluri Pranavi** | 23071A67B9 | CSD-B |
+| **Palagiri Haasini** | 23071A67G6 | CSD-C |
