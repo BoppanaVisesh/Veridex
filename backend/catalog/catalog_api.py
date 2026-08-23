@@ -531,3 +531,334 @@ async def get_enrichment_mode():
             else "Deterministic keyword-pattern fallback (no GEMINI_API_KEY)"
         ),
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ── UNILOG PRODUCT INTELLIGENCE — Process & Export ────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+
+@router.post("/unilog-process")
+async def unilog_process(
+    file: UploadFile = File(...),
+    limit: Optional[int] = Form(None),
+):
+    """
+    Upload a Unilog-format CSV/XLSX and return enriched product intelligence
+    as a JSON array matching the 252-column Delivery Format schema.
+
+    Accepts: CSV or XLSX with columns: Mfg_Part_Num, Part_Desc, E1_Brand,
+             Unilog_Brand, DIB_Brand, Part_Manuf
+
+    Optional form field `limit`: max rows to process (default: all).
+    """
+    import io
+    import pandas as pd
+    from backend.catalog.unilog_enrichment import enrich_unilog_batch, enrich_unilog_row_llm
+
+    filename = file.filename or "upload"
+    file_bytes = await file.read()
+
+    try:
+        if filename.lower().endswith((".xlsx", ".xls")):
+            df = pd.read_excel(io.BytesIO(file_bytes))
+        else:
+            df = pd.read_csv(io.BytesIO(file_bytes))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse file: {e}")
+
+    if limit:
+        df = df.head(limit)
+
+    rows = df.to_dict(orient="records")
+
+    # Strip placeholder brand strings
+    PLACEHOLDERS = {
+        "-- unbranded --", "-- no unilog brand --", "-- no dib brand --",
+        "-", "commodity - unbranded",
+    }
+    for row in rows:
+        for k, v in list(row.items()):
+            if str(v).strip().lower() in PLACEHOLDERS:
+                row[k] = ""
+
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    enriched = []
+    for row in rows:
+        if api_key:
+            result = enrich_unilog_row_llm(row, api_key)
+        else:
+            from backend.catalog.unilog_enrichment import enrich_unilog_row
+            result = enrich_unilog_row(row)
+        enriched.append(result)
+
+    return {
+        "status": "success",
+        "total_rows": len(enriched),
+        "enrichment_mode": "llm" if api_key else "deterministic_rule",
+        "gemini_configured": bool(api_key),
+        "data": enriched,
+    }
+
+
+@router.post("/unilog-export")
+async def unilog_export(
+    file: UploadFile = File(...),
+    limit: Optional[int] = Form(None),
+    fmt: Optional[str] = Form("xlsx"),
+):
+    """
+    Upload a Unilog-format CSV/XLSX and download the enriched output as
+    XLSX or CSV matching the exact 252-column Delivery Format schema.
+
+    Query param `fmt`: 'xlsx' (default) or 'csv'
+    """
+    import io
+    import pandas as pd
+    from fastapi.responses import Response
+    from backend.catalog.unilog_enrichment import enrich_unilog_row, enrich_unilog_row_llm
+
+    filename = file.filename or "upload"
+    file_bytes = await file.read()
+
+    try:
+        if filename.lower().endswith((".xlsx", ".xls")):
+            df = pd.read_excel(io.BytesIO(file_bytes))
+        else:
+            df = pd.read_csv(io.BytesIO(file_bytes))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse file: {e}")
+
+    if limit:
+        df = df.head(int(limit))
+
+    rows = df.to_dict(orient="records")
+    PLACEHOLDERS = {
+        "-- unbranded --", "-- no unilog brand --", "-- no dib brand --",
+        "-", "commodity - unbranded",
+    }
+    for row in rows:
+        for k, v in list(row.items()):
+            if str(v).strip().lower() in PLACEHOLDERS:
+                row[k] = ""
+
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    enriched = []
+    for row in rows:
+        if api_key:
+            result = enrich_unilog_row_llm(row, api_key)
+        else:
+            result = enrich_unilog_row(row)
+        # Remove internal metadata cols from output
+        result.pop("_confidence", None)
+        result.pop("_needs_review", None)
+        result.pop("_enrichment_mode", None)
+        result.pop("_llm_error", None)
+        enriched.append(result)
+
+    out_df = pd.DataFrame(enriched)
+
+    # Ensure exact column order from the Delivery Format
+    DELIVERY_COLS = _get_delivery_format_columns()
+    # Add any missing cols as empty
+    for col in DELIVERY_COLS:
+        if col not in out_df.columns:
+            out_df[col] = ""
+    # Reorder — only keep delivery format cols
+    out_df = out_df[[c for c in DELIVERY_COLS if c in out_df.columns]]
+
+    buf = io.BytesIO()
+    if fmt == "csv":
+        csv_bytes = out_df.to_csv(index=False).encode("utf-8-sig")
+        return Response(
+            content=csv_bytes,
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=enriched_output.csv"},
+        )
+    else:
+        out_df.to_excel(buf, index=False, engine="openpyxl")
+        buf.seek(0)
+        return Response(
+            content=buf.read(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=enriched_output.xlsx"},
+        )
+
+
+@router.get("/unilog-sample-export")
+async def unilog_sample_export(
+    limit: int = 100,
+    fmt: str = "xlsx",
+):
+    """
+    Process the bundled sample dataset (Unihack_ Sample Dataset - Input.csv)
+    and return the enriched 252-column output as XLSX or CSV.
+
+    Query params:
+      limit: number of rows to process (default 100, max 1000)
+      fmt:   'xlsx' (default) or 'csv'
+    """
+    import io
+    import pathlib
+    import pandas as pd
+    from fastapi.responses import Response
+    from backend.catalog.unilog_enrichment import enrich_unilog_row, enrich_unilog_row_llm
+
+    # Locate the sample dataset relative to this file's project root
+    project_root = pathlib.Path(__file__).parent.parent.parent
+    sample_path = project_root / "Unihack_ Sample Dataset - Input.csv"
+
+    if not sample_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Sample dataset not found at {sample_path}. "
+                   "Place 'Unihack_ Sample Dataset - Input.csv' in the project root.",
+        )
+
+    df = pd.read_csv(sample_path)
+    limit = min(int(limit), 1000)
+    df = df.head(limit)
+    rows = df.to_dict(orient="records")
+
+    PLACEHOLDERS = {
+        "-- unbranded --", "-- no unilog brand --", "-- no dib brand --",
+        "-", "commodity - unbranded",
+    }
+    for row in rows:
+        for k, v in list(row.items()):
+            if str(v).strip().lower() in PLACEHOLDERS:
+                row[k] = ""
+
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    enriched = []
+    for row in rows:
+        if api_key:
+            result = enrich_unilog_row_llm(row, api_key)
+        else:
+            result = enrich_unilog_row(row)
+        result.pop("_confidence", None)
+        result.pop("_needs_review", None)
+        result.pop("_enrichment_mode", None)
+        result.pop("_llm_error", None)
+        enriched.append(result)
+
+    out_df = pd.DataFrame(enriched)
+    DELIVERY_COLS = _get_delivery_format_columns()
+    for col in DELIVERY_COLS:
+        if col not in out_df.columns:
+            out_df[col] = ""
+    out_df = out_df[[c for c in DELIVERY_COLS if c in out_df.columns]]
+
+    buf = io.BytesIO()
+    if fmt == "csv":
+        csv_bytes = out_df.to_csv(index=False).encode("utf-8-sig")
+        return Response(
+            content=csv_bytes,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=unilog_enriched_{limit}rows.csv"},
+        )
+    else:
+        out_df.to_excel(buf, index=False, engine="openpyxl")
+        buf.seek(0)
+        return Response(
+            content=buf.read(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=unilog_enriched_{limit}rows.xlsx"},
+        )
+
+
+@router.get("/unilog-preview")
+async def unilog_preview(limit: int = 5):
+    """
+    Preview enriched output for the first N rows of the bundled sample dataset.
+    Returns JSON — useful for UI display without downloading a file.
+    """
+    import io
+    import pathlib
+    import pandas as pd
+    from backend.catalog.unilog_enrichment import enrich_unilog_row
+
+    project_root = pathlib.Path(__file__).parent.parent.parent
+    sample_path = project_root / "Unihack_ Sample Dataset - Input.csv"
+
+    if not sample_path.exists():
+        raise HTTPException(status_code=404, detail="Sample dataset not found.")
+
+    df = pd.read_csv(sample_path).head(min(int(limit), 50))
+    rows = df.to_dict(orient="records")
+
+    PLACEHOLDERS = {
+        "-- unbranded --", "-- no unilog brand --", "-- no dib brand --",
+        "-", "commodity - unbranded",
+    }
+    for row in rows:
+        for k, v in list(row.items()):
+            if str(v).strip().lower() in PLACEHOLDERS:
+                row[k] = ""
+
+    enriched = [enrich_unilog_row(r) for r in rows]
+
+    # Return a condensed view for display
+    preview = []
+    for r in enriched:
+        preview.append({
+            "Mfg_Part_Num":        r.get("Mfg_Part_Num", ""),
+            "MANUFACTURER_NAME":   r.get("MANUFACTURER_NAME", ""),
+            "BRAND_NAME":          r.get("BRAND_NAME", ""),
+            "Classpath":           r.get("Classpath", ""),
+            "INVOICE_DESC":        r.get("INVOICE_DESC", ""),
+            "MOBILE_DESC":         r.get("MOBILE_DESC", ""),
+            "SHORT_DESC":          r.get("SHORT_DESC", ""),
+            "LONG_DESC1":          r.get("LONG_DESC1", ""),
+            "attributes":          [
+                {"label": r.get(f"ATTRIBUTE_LABEL {i}"),
+                 "value": r.get(f"ATTRIBUTE_VALUE {i}"),
+                 "uom":   r.get(f"ATTRIBUTE_UOM {i}")}
+                for i in range(1, 11)
+                if r.get(f"ATTRIBUTE_LABEL {i}")
+            ],
+            "_confidence":         r.get("_confidence", ""),
+            "_needs_review":       r.get("_needs_review", ""),
+            "_enrichment_mode":    r.get("_enrichment_mode", ""),
+        })
+
+    return {
+        "total": len(preview),
+        "enrichment_mode": "llm" if os.environ.get("GEMINI_API_KEY") else "deterministic_rule",
+        "gemini_configured": bool(os.environ.get("GEMINI_API_KEY", "").strip()),
+        "rows": preview,
+    }
+
+
+def _get_delivery_format_columns() -> list[str]:
+    """Returns the exact 252-column ordered list matching the Delivery Format schema."""
+    cols = [
+        "MFR URL", "Ref URL 1", "Ref URL 2", "Ref URL 3", "Ref URL 4", "Ref URL 5",
+        "PART_NUMBER", "Dept", "Class", "Fine", "SKU - MY_PART_NUMBER",
+        "Mfg_Part_Num", "Part_Desc", "E1_Brand", "Unilog_Brand", "DIB_Brand", "Part_Manuf",
+        "MANUFACTURER_NAME", "BRAND_NAME", "TRADE_NAME", "MANUFACTURER_PART_NUMBER",
+        "ALTERNATE_PART_NUMBER", "Classpath",
+        "MOBILE_DESC", "INVOICE_DESC", "SHORT_DESC", "LONG_DESC1", "RETAIL_DESC",
+        "MARKETING_DESCRIPTION",
+    ]
+    for i in range(1, 21):
+        cols.append(f"ITEM_FEATURES_{i}")
+    cols += ["With", "Standard/Approvals", "Prop 65", "Application", "Includes", "Product Name"]
+    for i in range(1, 51):
+        cols += [f"ATTRIBUTE_LABEL {i}", f"ATTRIBUTE_VALUE {i}", f"ATTRIBUTE_UOM {i}"]
+    cols += [
+        "UPC", "EAN", "GTIN", "UNSPSC", "Warranty", "List Price",
+        "Selling Qty", "Selling UOM", "Standard Packaging Information",
+        "LENGTH", "LENGTH_UOM", "HEIGHT", "HEIGHT_UOM",
+        "WIDTH", "WIDTH_UOM", "WEIGHT", "WEIGHT_UOM", "VOLUME", "VOLUME_UOM",
+        "Product Image", "Alternate Image 1", "Alternate Image 2",
+        "Alternate Image 3", "Alternate Image 4",
+        "SDS", "SDS_1", "Warranty Information", "Catalog",
+        "Specification Sheet", "Instruction/Installation Manual",
+        "Service Manual", "Owners/User Manual", "Line Drawing", "MTR",
+        "RoHS", "Full Engineering Drawing", "Energy Star Guide",
+        "Technical Bulletin", "Submittal", "Compatibility Chart",
+        "Size Chart", "Product Label/Insert", "Video Link", "Video Link 1",
+        "Country Of Origin", "Discontinued", "Actual Image (Yes/No)",
+    ]
+    return cols
+

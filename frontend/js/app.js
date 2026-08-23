@@ -22,6 +22,7 @@ const App = {
       humanreview:    'human-review',
       metrics:        'metrics',
       catalog:        'catalog-intelligence',
+      unilog:         'unilog-intelligence',
     };
     el('crumb-txt').textContent = names[p] || p;
 
@@ -29,6 +30,7 @@ const App = {
     if (p === 'scenarios')     { ScenariosPage.render(); }
     if (p === 'metrics')       { MetricsPage.load(); }
     if (p === 'catalog')       { CatalogPage.load(); }
+    if (p === 'unilog')        { UnilogPage.init(); }
 
     if (p === 'investigation') {
       if (App.currentDecision) {
@@ -146,7 +148,7 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); App.openSearch(); }
   if ((e.metaKey || e.ctrlKey) && '1234567'.includes(e.key)) {
     e.preventDefault();
-    const pages = ['command','scenarios','missioncontrol','investigation','humanreview','metrics','catalog'];
+    const pages = ['command','scenarios','missioncontrol','investigation','humanreview','metrics','catalog','unilog'];
     const t = pages[+e.key - 1];
     if (t) App.nav(t);
   }

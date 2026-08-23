@@ -108,6 +108,15 @@
       </svg>
       Catalog Intelligence
     </button>
+
+    <button class="nav-item" id="nav-unilog" onclick="App.nav('unilog')">
+      <span class="nav-num">08</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+      Unilog Intelligence
+      <span class="chip c-green" style="font-size:.58rem;padding:1px 5px;margin-left:4px">NEW</span>
+    </button>
   </div>
 
   <div class="sidebar-footer">
@@ -1022,6 +1031,207 @@
 
   </section>
 
+  <!-- ═══════════ 08 UNILOG INTELLIGENCE PAGE ═══════════ -->
+  <section class="page" id="page-unilog">
+
+    <!-- HEADER -->
+    <div class="page-hdr" style="margin-bottom:24px">
+      <div>
+        <div class="page-meta">UNILOG PRODUCT INTELLIGENCE &middot; AI ENRICHMENT PIPELINE</div>
+        <h1 class="page-title" style="margin-bottom:4px">Unilog Intelligence</h1>
+        <p class="page-desc" style="margin-bottom:0">Transform raw catalog rows into structured, commerce-ready 252-column product records matching the Unilog Delivery Format.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="chip" id="ul-mode-badge" style="background:#1E293B;color:#94A3B8">Checking mode...</span>
+        <button class="btn btn-outline btn-sm" onclick="UnilogPage.loadPreview()">&#8635; Refresh Preview</button>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
+      <div class="kpi-card" style="border-left:3px solid var(--blue)">
+        <div class="kpi-num"><span>Input Columns</span></div>
+        <div class="kpi-val" style="color:var(--blue)">6</div>
+        <div class="kpi-sub">Raw catalog fields</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--green)">
+        <div class="kpi-num"><span>Output Columns</span></div>
+        <div class="kpi-val" style="color:var(--green)">252</div>
+        <div class="kpi-sub">Delivery Format schema</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--purple)">
+        <div class="kpi-num"><span>Sample Dataset</span></div>
+        <div class="kpi-val" style="color:var(--purple)">1,000</div>
+        <div class="kpi-sub">Input rows</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid var(--amber)">
+        <div class="kpi-num"><span>Attributes Extracted</span></div>
+        <div class="kpi-val" id="ul-stat-attrs" style="color:var(--amber)">--</div>
+        <div class="kpi-sub">Per enriched row avg</div>
+      </div>
+      <div class="kpi-card" style="border-left:3px solid #10B981">
+        <div class="kpi-num"><span>Classified</span></div>
+        <div class="kpi-val" id="ul-stat-classified" style="color:#10B981">--</div>
+        <div class="kpi-sub">With Classpath</div>
+      </div>
+    </div>
+
+    <!-- PIPELINE OVERVIEW + EXPORT -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+      <!-- Pipeline Steps -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Enrichment Pipeline</h3>
+          <span class="chip c-blue">6 Stages</span>
+        </div>
+        <div style="padding:16px 20px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg-muted);border-radius:6px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#3B82F6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">1</div>
+              <div><div style="font-size:.8rem;font-weight:700">Clean &amp; Normalize</div><div style="font-size:.68rem;color:var(--text3)">Strip placeholders, parse manufacturer &amp; brand</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg-muted);border-radius:6px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#8B5CF6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">2</div>
+              <div><div style="font-size:.8rem;font-weight:700">Taxonomy Classification</div><div style="font-size:.68rem;color:var(--text3)">Infer Dept / Class / Fine / Classpath (30+ rules)</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg-muted);border-radius:6px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#10B981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">3</div>
+              <div><div style="font-size:.8rem;font-weight:700">Attribute Extraction</div><div style="font-size:.68rem;color:var(--text3)">Regex-parse dimensions, grit, voltage, series, color</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg-muted);border-radius:6px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#F59E0B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">4</div>
+              <div><div style="font-size:.8rem;font-weight:700">Description Generation</div><div style="font-size:.68rem;color:var(--text3)">Invoice (&le;40c CAPS), Mobile (60-80c), Short, Long, Retail</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg-muted);border-radius:6px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#EF4444;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">5</div>
+              <div><div style="font-size:.8rem;font-weight:700">LLM Enrichment (optional)</div><div style="font-size:.68rem;color:var(--text3)">Gemini upgrades descriptions when GEMINI_API_KEY set</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg-muted);border-radius:6px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#475569;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">6</div>
+              <div><div style="font-size:.8rem;font-weight:700">Export 252-Column Output</div><div style="font-size:.68rem;color:var(--text3)">Download XLSX or CSV matching Delivery Format schema</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Controls -->
+      <div class="card" style="padding:0">
+        <div class="card-hd">
+          <h3>Export Enriched Output</h3>
+          <span class="chip c-green">252 Columns</span>
+        </div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+
+          <!-- One-click sample export -->
+          <div style="background:linear-gradient(135deg,#1E3A5F,#1E1B4B);border-radius:8px;padding:16px">
+            <div style="font-size:.8rem;font-weight:700;color:#A5B4FC;margin-bottom:4px">&#9889; Sample Dataset (1,000 rows)</div>
+            <div style="font-size:.7rem;color:#94A3B8;margin-bottom:12px">Process the bundled Unihack sample dataset instantly</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="ul-sample-limit" style="padding:6px 10px;border:1px solid #3730A3;border-radius:6px;background:#0F0A1E;color:#A5B4FC;font-size:.78rem">
+                <option value="10">First 10 rows</option>
+                <option value="50">First 50 rows</option>
+                <option value="100" selected>First 100 rows</option>
+                <option value="500">First 500 rows</option>
+                <option value="1000">All 1,000 rows</option>
+              </select>
+              <select id="ul-sample-fmt" style="padding:6px 10px;border:1px solid #3730A3;border-radius:6px;background:#0F0A1E;color:#A5B4FC;font-size:.78rem">
+                <option value="xlsx">XLSX</option>
+                <option value="csv">CSV</option>
+              </select>
+              <button class="btn btn-primary" onclick="UnilogPage.downloadSample()" id="ul-sample-btn">&#11015; Download</button>
+            </div>
+          </div>
+
+          <!-- Upload your own file -->
+          <div style="border:2px dashed var(--border);border-radius:8px;padding:14px">
+            <div style="font-size:.78rem;font-weight:700;margin-bottom:4px">Upload Custom File</div>
+            <div style="font-size:.7rem;color:var(--text3);margin-bottom:10px">Upload your own CSV/XLSX with Unilog columns</div>
+            <input type="file" id="ul-upload-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="UnilogPage.onFileSelect(this)">
+            <div id="ul-upload-info" style="display:none;font-size:.74rem;color:var(--text2);margin-bottom:8px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('ul-upload-file').click()">Select File</button>
+              <select id="ul-upload-fmt" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:.75rem;background:var(--bg);color:var(--text)">
+                <option value="xlsx">XLSX</option>
+                <option value="csv">CSV</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="UnilogPage.uploadAndExport()" id="ul-upload-btn">&#11015; Process &amp; Download</button>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div id="ul-export-status" style="display:none;padding:10px 14px;border-radius:6px;font-size:.78rem"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE PREVIEW TABLE -->
+    <div class="card mb24" style="padding:0">
+      <div class="card-hd">
+        <div>
+          <h3>Live Enrichment Preview</h3>
+          <small style="font-size:.68rem;color:var(--text3);font-weight:400">First 5 rows of sample dataset — enriched in real-time</small>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="chip" id="ul-preview-mode" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0">--</span>
+          <button class="btn btn-outline btn-sm" onclick="UnilogPage.loadPreview()">&#8635; Refresh</button>
+        </div>
+      </div>
+      <div id="ul-preview-loading" style="padding:32px;text-align:center;color:var(--text3);font-size:.82rem">Loading preview...</div>
+      <div id="ul-preview-wrap" style="display:none">
+        <!-- Card grid for each row -->
+        <div id="ul-preview-cards" style="padding:16px;display:flex;flex-direction:column;gap:16px"></div>
+      </div>
+    </div>
+
+    <!-- FIELD MAPPING TABLE -->
+    <div class="card mb24" style="padding:0">
+      <div class="card-hd">
+        <h3>Input &rarr; Output Field Mapping</h3>
+        <span class="chip c-blue">6 &rarr; 252 columns</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+          <thead>
+            <tr style="background:var(--bg-sub);border-bottom:2px solid var(--border);text-align:left;color:var(--text3);font-size:.65rem;text-transform:uppercase;letter-spacing:.06em">
+              <th style="padding:10px 16px">Input Column</th>
+              <th style="padding:10px 8px">Output Column(s)</th>
+              <th style="padding:10px 8px">Transformation</th>
+              <th style="padding:10px 8px">Confidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-family:'JetBrains Mono',monospace;font-weight:600">Mfg_Part_Num</td>
+              <td style="padding:10px 8px">MANUFACTURER_PART_NUMBER, Mfg_Part_Num</td>
+              <td style="padding:10px 8px;color:var(--text3)">Direct passthrough + image filename</td>
+              <td style="padding:10px 8px"><span class="chip c-green">High</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);background:var(--bg-sub)">
+              <td style="padding:10px 16px;font-family:'JetBrains Mono',monospace;font-weight:600">Part_Desc</td>
+              <td style="padding:10px 8px">INVOICE_DESC, MOBILE_DESC, SHORT_DESC, LONG_DESC1, RETAIL_DESC, Classpath, Dept, Class, Fine, ITEM_FEATURES_1-10, ATTRIBUTE_LABEL/VALUE/UOM 1-50</td>
+              <td style="padding:10px 8px;color:var(--text3)">Taxonomy classification + attribute extraction + 5 description variants</td>
+              <td style="padding:10px 8px"><span class="chip c-amber">Medium</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-family:'JetBrains Mono',monospace;font-weight:600">E1_Brand / Unilog_Brand / DIB_Brand</td>
+              <td style="padding:10px 8px">BRAND_NAME, SHORT_DESC, LONG_DESC1, Product Image, Specification Sheet</td>
+              <td style="padding:10px 8px;color:var(--text3)">Placeholder strip + canonical brand lookup + image naming</td>
+              <td style="padding:10px 8px"><span class="chip c-green">High</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);background:var(--bg-sub)">
+              <td style="padding:10px 16px;font-family:'JetBrains Mono',monospace;font-weight:600">Part_Manuf</td>
+              <td style="padding:10px 8px">MANUFACTURER_NAME, BRAND_NAME (fallback)</td>
+              <td style="padding:10px 8px;color:var(--text3)">Extract name before code, strip parenthetical code</td>
+              <td style="padding:10px 8px"><span class="chip c-green">High</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
 </main>
 
 <!-- ═══════════ SEARCH MODAL ═══════════ -->
@@ -1069,6 +1279,7 @@
 <script src="/js/pages/humanreview.js"></script>
 <script src="/js/pages/metrics.js"></script>
 <script src="/js/pages/catalog.js"></script>
+<script src="/js/pages/unilog.js"></script>
 <script src="/js/app.js"></script>
 
 </body>
