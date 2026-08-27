@@ -1,6 +1,5 @@
 # Veridex — AI-Powered Product Catalog Intelligence Platform
 
-> **Unilog Hackathon 2026** — Transform raw supplier data into the full 252-column Unilog Delivery Format using a multi-agent, evidence-first decision intelligence pipeline.
 
 <p align="center">
   <img src="sentinel_architecture.jpeg" alt="Veridex System Architecture" width="1000"/>
@@ -303,35 +302,6 @@ veridex/
 
 ---
 
-## 🏆 PS Requirements → Feature Mapping
 
-| Requirement | Veridex Feature | Status |
-|---|---|---|
-| Generate structured product data from limited inputs | Unilog: 6→255 cols | ✅ |
-| Improve product data quality and consistency | Validation Engine + Compliance Registry | ✅ |
-| Traceable, auditable outputs | Evidence timeline + execution log | ✅ |
-| Scale across large catalogs | Batch ingestion, SSE streaming | ✅ |
-| AI-powered enrichment | 3-tier pipeline (rule-based + Gemini) | ✅ |
-| Human oversight on decisions | HITL Review page (Accept/Edit/Reject) | ✅ |
-| Continuous improvement | EMA learning loop + Brier calibration | ✅ |
-| Supplier data quality monitoring | D6 Source Reliability Health | ✅ |
-| Certification compliance enforcement | D7 + deterministic Compliance Veto | ✅ |
-| Multi-channel syndication readiness | D9 + Channel: Amazon B2B, Grainger, Fastenal | ✅ |
 
----
 
-## 📽️ Project Walkthroughs
-
-- **GitHub:** [BoppanaVisesh/Veridex](https://github.com/BoppanaVisesh/Veridex)
-- **Architecture Walkthrough:** [Watch Here](https://drive.google.com/file/d/1Vhca9_k1AW6r3JxJh9RNBNknJE04UvD6/view?usp=sharing)
-- **Demo Walkthrough:** [Watch Here](https://drive.google.com/file/d/1LrNWyUuFfnymBQd_UDezcF4Sd7mmdCvk/view?usp=sharing)
-
----
-
-## 👥 Team
-
-| Name | Roll Number | Section |
-|---|---|---|
-| **Boppanna Visesh** | 23071A6775 | CSD-B |
-| **Pulluri Pranavi** | 23071A67B9 | CSD-B |
-| **Palagiri Haasini** | 23071A67G6 | CSD-C |
